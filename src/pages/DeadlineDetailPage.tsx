@@ -11,6 +11,7 @@ import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { useFeedback } from '@/hooks/useFeedback';
 import { Subtask } from '@/types/deadline';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ export function DeadlineDetailPage() {
     deleteDeadline: deleteDeadlineFn,
     categories 
   } = useDeadlines();
+  const { completeFeedback, tickFeedback } = useFeedback();
   const [newSubtask, setNewSubtask] = useState('');
 
   const deadline = deadlines.find(d => d.id === id);
@@ -64,7 +66,13 @@ export function DeadlineDetailPage() {
   const handleCompleteDeadline = () => {
     if (!id) return;
     completeDeadlineFn(id);
+    completeFeedback();
     toast.success('¡Deadline completado! 🎉');
+  };
+
+  const handleToggleSubtask = (subtaskId: string) => {
+    toggleSubtask(subtaskId);
+    tickFeedback();
   };
 
   const handleDeleteDeadline = () => {
@@ -240,7 +248,7 @@ export function DeadlineDetailPage() {
               <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
               <Checkbox
                 checked={subtask.completed}
-                onCheckedChange={() => toggleSubtask(subtask.id)}
+                onCheckedChange={() => handleToggleSubtask(subtask.id)}
               />
               <span className={cn(
                 "flex-1",

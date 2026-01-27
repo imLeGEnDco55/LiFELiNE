@@ -5,6 +5,7 @@ import { Play, Pause, SkipForward, Coffee, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { useFeedback } from '@/hooks/useFeedback';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ export function FocusPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { deadlines, createFocusSession, completeFocusSession, weeklyStats } = useDeadlines();
+  const { successFeedback, breakFeedback } = useFeedback();
   
   const deadlineId = searchParams.get('deadline');
   const deadline = deadlineId ? deadlines.find(d => d.id === deadlineId) : null;
@@ -46,15 +48,17 @@ export function FocusPage() {
     
     if (sessionType === 'work') {
       setSessionsCompleted(prev => prev + 1);
+      successFeedback();
       toast.success('¡Sesión completada! 🎉');
       const nextType = (sessionsCompleted + 1) % 4 === 0 ? 'long_break' : 'short_break';
       setSessionType(nextType);
       setTimeLeft(SESSION_DURATIONS[nextType]);
     } else {
+      breakFeedback();
       setSessionType('work');
       setTimeLeft(SESSION_DURATIONS.work);
     }
-  }, [sessionType, sessionsCompleted, currentSessionId, completeFocusSession]);
+  }, [sessionType, sessionsCompleted, currentSessionId, completeFocusSession, successFeedback, breakFeedback]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
