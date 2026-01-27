@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
+import { motion, Reorder } from 'framer-motion';
+import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, GripVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { Subtask } from '@/types/deadline';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +23,8 @@ export function DeadlineDetailPage() {
     getSubtasksForDeadline, 
     createSubtask, 
     toggleSubtask, 
-    deleteSubtask, 
+    deleteSubtask,
+    reorderSubtasks,
     completeDeadline: completeDeadlineFn,
     deleteDeadline: deleteDeadlineFn,
     categories 
@@ -30,7 +32,7 @@ export function DeadlineDetailPage() {
   const [newSubtask, setNewSubtask] = useState('');
 
   const deadline = deadlines.find(d => d.id === id);
-  const subtasks = id ? getSubtasksForDeadline(id) : [];
+  const subtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
   const category = deadline?.category_id 
     ? categories.find(c => c.id === deadline.category_id) 
     : undefined;
@@ -215,19 +217,27 @@ export function DeadlineDetailPage() {
           </Button>
         </div>
 
-        {/* Subtasks List */}
-        <div className="space-y-2">
-          {subtasks.map((subtask, index) => (
-            <motion.div
+        {/* Subtasks List with Drag & Drop */}
+        <Reorder.Group 
+          axis="y" 
+          values={subtasks} 
+          onReorder={(newOrder: Subtask[]) => {
+            if (id) {
+              reorderSubtasks(id, newOrder.map(s => s.id));
+            }
+          }}
+          className="space-y-2"
+        >
+          {subtasks.map((subtask) => (
+            <Reorder.Item
               key={subtask.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              value={subtask}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg bg-card border border-border",
+                "flex items-center gap-3 p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing",
                 subtask.completed && "opacity-60"
               )}
             >
+              <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
               <Checkbox
                 checked={subtask.completed}
                 onCheckedChange={() => toggleSubtask(subtask.id)}
@@ -246,9 +256,9 @@ export function DeadlineDetailPage() {
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
-            </motion.div>
+            </Reorder.Item>
           ))}
-        </div>
+        </Reorder.Group>
 
         {subtasks.length === 0 && (
           <p className="text-center text-muted-foreground py-6">
