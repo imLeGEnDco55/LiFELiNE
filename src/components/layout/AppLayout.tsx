@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { useNotifications } from '@/hooks/useNotifications';
+import { PWAPrompt } from '@/components/pwa/PWAPrompt';
 
 export function AppLayout() {
   // Initialize notification checking
@@ -12,6 +13,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <PWAPrompt />
     </div>
   );
 }
