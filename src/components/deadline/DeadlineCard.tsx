@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Deadline, Subtask } from '@/types/deadline';
+import { Deadline, Subtask, Category } from '@/types/deadline';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { CountdownDisplay } from './CountdownDisplay';
 import { Progress } from '@/components/ui/progress';
@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 interface DeadlineCardProps {
   deadline: Deadline;
   subtasks?: Subtask[];
+  category?: Category;
   onClick?: () => void;
 }
 
@@ -26,7 +27,7 @@ const statusLabels = {
   overdue: { text: 'VENCIDO', className: 'bg-urgent/20 text-urgent' },
 };
 
-export function DeadlineCard({ deadline, subtasks = [], onClick }: DeadlineCardProps) {
+export function DeadlineCard({ deadline, subtasks = [], category, onClick }: DeadlineCardProps) {
   const timeRemaining = useCountdown(deadline.deadline_at, deadline.created_at);
   const isCompleted = !!deadline.completed_at;
   const status = getDeadlineStatus(timeRemaining, isCompleted);
@@ -54,14 +55,27 @@ export function DeadlineCard({ deadline, subtasks = [], onClick }: DeadlineCardP
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className={cn(
-            "font-semibold text-foreground truncate",
-            isCompleted && "line-through text-muted-foreground"
-          )}>
-            {deadline.title}
-          </h3>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className={cn(
+              "font-semibold text-foreground truncate",
+              isCompleted && "line-through text-muted-foreground"
+            )}>
+              {deadline.title}
+            </h3>
+            {category && (
+              <span 
+                className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium"
+                style={{ 
+                  backgroundColor: `${category.color}20`,
+                  color: category.color,
+                }}
+              >
+                {category.name}
+              </span>
+            )}
+          </div>
           <span className={cn(
-            "inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",
+            "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",
             statusInfo.className
           )}>
             {statusInfo.text}

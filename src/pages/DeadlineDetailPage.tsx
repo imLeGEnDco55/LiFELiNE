@@ -10,47 +10,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
-import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Deadline, Subtask } from '@/types/deadline';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function DeadlineDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { 
+    deadlines, 
+    getSubtasksForDeadline, 
+    createSubtask, 
+    toggleSubtask, 
+    deleteSubtask, 
+    completeDeadline: completeDeadlineFn,
+    deleteDeadline: deleteDeadlineFn,
+    categories 
+  } = useDeadlines();
   const [newSubtask, setNewSubtask] = useState('');
 
-  const { data: deadline } = useQuery({
-    queryKey: ['deadline', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('deadlines')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Deadline | null;
-    },
-    enabled: !!id,
-  });
-
-  const { data: subtasks = [] } = useQuery({
-    queryKey: ['subtasks', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('subtasks')
-        .select('*')
-        .eq('deadline_id', id)
-        .order('order_index', { ascending: true });
-      if (error) throw error;
-      return data as Subtask[];
-    },
-    enabled: !!id,
-  });
+  const deadline = deadlines.find(d => d.id === id);
+  const subtasks = id ? getSubtasksForDeadline(id) : [];
+  const category = deadline?.category_id 
+    ? categories.find(c => c.id === deadline.category_id) 
+    : undefined;
 
   const timeRemaining = useCountdown(
     deadline?.deadline_at || new Date().toISOString(),
@@ -64,73 +47,30 @@ export function DeadlineDetailPage() {
     ? Math.round((completedCount / subtasks.length) * 100)
     : Math.round(timeRemaining.percentage);
 
-  const addSubtaskMutation = useMutation({
-    mutationFn: async (title: string) => {
-      if (!user || !id) throw new Error('Not authenticated');
-      const { error } = await supabase.from('subtasks').insert({
-        deadline_id: id,
-        user_id: user.id,
-        title,
-        order_index: subtasks.length,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subtasks', id] });
-      setNewSubtask('');
-    },
-    onError: () => toast.error('Error al agregar subtarea'),
-  });
+  const handleAddSubtask = (title: string) => {
+    if (!id) return;
+    createSubtask({
+      deadline_id: id,
+      title,
+      completed: false,
+      due_at: null,
+      order_index: subtasks.length,
+    });
+    setNewSubtask('');
+  };
 
-  const toggleSubtaskMutation = useMutation({
-    mutationFn: async ({ subtaskId, completed }: { subtaskId: string; completed: boolean }) => {
-      const { error } = await supabase
-        .from('subtasks')
-        .update({ completed })
-        .eq('id', subtaskId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subtasks', id] });
-    },
-  });
+  const handleCompleteDeadline = () => {
+    if (!id) return;
+    completeDeadlineFn(id);
+    toast.success('¡Deadline completado! 🎉');
+  };
 
-  const deleteSubtaskMutation = useMutation({
-    mutationFn: async (subtaskId: string) => {
-      const { error } = await supabase.from('subtasks').delete().eq('id', subtaskId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subtasks', id] });
-    },
-  });
-
-  const completeDeadlineMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('deadlines')
-        .update({ completed_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deadline', id] });
-      queryClient.invalidateQueries({ queryKey: ['deadlines'] });
-      toast.success('¡Deadline completado! 🎉');
-    },
-  });
-
-  const deleteDeadlineMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('deadlines').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deadlines'] });
-      toast.success('Deadline eliminado');
-      navigate('/');
-    },
-  });
+  const handleDeleteDeadline = () => {
+    if (!id) return;
+    deleteDeadlineFn(id);
+    toast.success('Deadline eliminado');
+    navigate('/');
+  };
 
   const variant = status === 'immediate' || status === 'overdue' ? 'urgent' 
     : status === 'warning' ? 'warning'
@@ -162,7 +102,7 @@ export function DeadlineDetailPage() {
           variant="ghost" 
           size="icon" 
           className="text-destructive"
-          onClick={() => deleteDeadlineMutation.mutate()}
+          onClick={handleDeleteDeadline}
         >
           <Trash2 className="w-5 h-5" />
         </Button>
@@ -190,6 +130,18 @@ export function DeadlineDetailPage() {
         </CircularProgress>
 
         <h1 className="text-2xl font-bold mt-4 text-center">{deadline.title}</h1>
+        
+        {category && (
+          <span 
+            className="mt-2 px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{ 
+              backgroundColor: `${category.color}20`,
+              color: category.color,
+            }}
+          >
+            {category.name}
+          </span>
+        )}
         
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
@@ -249,7 +201,7 @@ export function DeadlineDetailPage() {
             onChange={(e) => setNewSubtask(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && newSubtask.trim()) {
-                addSubtaskMutation.mutate(newSubtask.trim());
+                handleAddSubtask(newSubtask.trim());
               }
             }}
             className="bg-card"
@@ -257,7 +209,7 @@ export function DeadlineDetailPage() {
           <Button
             size="icon"
             disabled={!newSubtask.trim()}
-            onClick={() => addSubtaskMutation.mutate(newSubtask.trim())}
+            onClick={() => handleAddSubtask(newSubtask.trim())}
           >
             <Plus className="w-4 h-4" />
           </Button>
@@ -278,12 +230,7 @@ export function DeadlineDetailPage() {
             >
               <Checkbox
                 checked={subtask.completed}
-                onCheckedChange={(checked) => 
-                  toggleSubtaskMutation.mutate({ 
-                    subtaskId: subtask.id, 
-                    completed: !!checked 
-                  })
-                }
+                onCheckedChange={() => toggleSubtask(subtask.id)}
               />
               <span className={cn(
                 "flex-1",
@@ -295,7 +242,7 @@ export function DeadlineDetailPage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                onClick={() => deleteSubtaskMutation.mutate(subtask.id)}
+                onClick={() => deleteSubtask(subtask.id)}
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -321,7 +268,7 @@ export function DeadlineDetailPage() {
           <Button
             variant="outline"
             className="w-full h-12 border-success text-success hover:bg-success/10"
-            onClick={() => completeDeadlineMutation.mutate()}
+            onClick={handleCompleteDeadline}
           >
             <CheckCircle2 className="w-5 h-5 mr-2" />
             Marcar como Completado
