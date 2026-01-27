@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { WeeklyStats } from '@/components/stats/WeeklyStats';
 import { DailyActivityChart } from '@/components/stats/DailyActivityChart';
+import { StreakDisplay } from '@/components/stats/StreakDisplay';
 
 export function StatsPage() {
   return (
@@ -22,6 +23,9 @@ export function StatsPage() {
         transition={{ delay: 0.1 }}
         className="space-y-6"
       >
+        {/* Streak Display */}
+        <StreakDisplay />
+
         {/* Weekly Stats */}
         <WeeklyStats />
 
