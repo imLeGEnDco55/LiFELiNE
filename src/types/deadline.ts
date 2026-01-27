@@ -2,6 +2,13 @@ export type Priority = 'low' | 'medium' | 'high';
 
 export type DeadlineStatus = 'immediate' | 'warning' | 'on_track' | 'completed' | 'overdue';
 
+export interface Category {
+  id: string;
+  name: string;
+  color: string;
+  icon?: string;
+}
+
 export interface Deadline {
   id: string;
   user_id: string;
@@ -9,6 +16,7 @@ export interface Deadline {
   description: string | null;
   deadline_at: string;
   priority: Priority;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -53,3 +61,12 @@ export interface TimeRemaining {
   total: number;
   percentage: number;
 }
+
+// Default categories
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'design', name: 'Diseño', color: 'hsl(280, 100%, 70%)' },
+  { id: 'programming', name: 'Programación', color: 'hsl(200, 100%, 60%)' },
+  { id: 'marketing', name: 'Marketing', color: 'hsl(340, 100%, 65%)' },
+  { id: 'personal', name: 'Personal', color: 'hsl(150, 80%, 50%)' },
+  { id: 'work', name: 'Trabajo', color: 'hsl(45, 100%, 55%)' },
+];

@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import { User, LogOut, Moon, Bell, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useLocalAuth();
 
   const handleSignOut = async () => {
     const { error } = await signOut();

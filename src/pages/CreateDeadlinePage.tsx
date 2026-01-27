@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Flag } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Flag, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Priority } from '@/types/deadline';
@@ -28,11 +27,12 @@ const priorities: { value: Priority; label: string; color: string }[] = [
 
 export function CreateDeadlinePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { createDeadline, categories } = useDeadlines();
   const [title, setTitle] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('23:59');
   const [priority, setPriority] = useState<Priority>('medium');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -44,10 +44,6 @@ export function CreateDeadlinePage() {
       toast.error('Selecciona una fecha');
       return;
     }
-    if (!user) {
-      toast.error('Debes iniciar sesión');
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -56,14 +52,13 @@ export function CreateDeadlinePage() {
     deadlineAt.setHours(hours, minutes, 0, 0);
 
     try {
-      const { error } = await supabase.from('deadlines').insert({
-        user_id: user.id,
+      createDeadline({
         title: title.trim(),
+        description: null,
         deadline_at: deadlineAt.toISOString(),
         priority,
+        category_id: selectedCategory,
       });
-
-      if (error) throw error;
 
       toast.success('¡Deadline creado!');
       navigate('/');
@@ -105,6 +100,48 @@ export function CreateDeadlinePage() {
             onChange={(e) => setTitle(e.target.value)}
             className="text-lg h-14 bg-card border-border"
           />
+        </div>
+
+        {/* Category Selection */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            Categoría
+          </label>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="secondary"
+              size="sm"
+              className={cn(
+                "rounded-full",
+                selectedCategory === null && "ring-2 ring-primary"
+              )}
+              onClick={() => setSelectedCategory(null)}
+            >
+              Sin categoría
+            </Button>
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant="secondary"
+                size="sm"
+                className="rounded-full gap-1.5"
+                style={{
+                  backgroundColor: selectedCategory === category.id ? category.color : undefined,
+                  borderColor: category.color,
+                  color: selectedCategory === category.id ? 'white' : undefined,
+                  boxShadow: selectedCategory === category.id ? `0 0 12px ${category.color}40` : undefined,
+                }}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                <span 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: selectedCategory === category.id ? 'white' : category.color }}
+                />
+                {category.name}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Quick Date Selection */}
