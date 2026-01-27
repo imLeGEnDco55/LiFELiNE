@@ -5,8 +5,6 @@ import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
-import { WeeklyStats } from '@/components/stats/WeeklyStats';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -35,20 +33,10 @@ export function CalendarPage() {
 
   return (
     <div className="px-4 py-6 pb-24">
-      {/* Weekly Stats */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <WeeklyStats />
-      </motion.div>
-
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
         className="mb-6"
       >
         <div className="flex items-center justify-between">
