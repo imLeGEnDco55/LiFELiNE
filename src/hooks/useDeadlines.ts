@@ -71,6 +71,24 @@ export function useDeadlines() {
     ));
   }, [setSubtasks]);
 
+  const reorderSubtasks = useCallback((deadlineId: string, reorderedIds: string[]) => {
+    setSubtasks(prev => {
+      const updated = [...prev];
+      reorderedIds.forEach((id, index) => {
+        const subtaskIndex = updated.findIndex(s => s.id === id);
+        if (subtaskIndex !== -1) {
+          updated[subtaskIndex] = { ...updated[subtaskIndex], order_index: index };
+        }
+      });
+      return updated.sort((a, b) => {
+        if (a.deadline_id === deadlineId && b.deadline_id === deadlineId) {
+          return a.order_index - b.order_index;
+        }
+        return 0;
+      });
+    });
+  }, [setSubtasks]);
+
   const createCategory = useCallback((data: Omit<Category, 'id'>) => {
     const newCategory: Category = {
       ...data,
@@ -93,6 +111,10 @@ export function useDeadlines() {
       d.category_id === id ? { ...d, category_id: null } : d
     ));
   }, [setCategories, setDeadlines]);
+
+  const reorderCategories = useCallback((reorderedCategories: typeof categories) => {
+    setCategories(reorderedCategories);
+  }, [setCategories]);
 
   // Focus Sessions
   const createFocusSession = useCallback((data: Omit<FocusSession, 'id' | 'user_id' | 'started_at'>) => {
@@ -187,9 +209,11 @@ export function useDeadlines() {
     updateSubtask,
     deleteSubtask,
     toggleSubtask,
+    reorderSubtasks,
     createCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
     getSubtasksForDeadline,
     createFocusSession,
     completeFocusSession,

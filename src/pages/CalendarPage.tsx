@@ -5,10 +5,9 @@ import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
-import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Deadline } from '@/types/deadline';
+import { WeeklyStats } from '@/components/stats/WeeklyStats';
+import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,23 +15,9 @@ const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 export function CalendarPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { deadlines, categories } = useDeadlines();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  const { data: deadlines = [] } = useQuery({
-    queryKey: ['deadlines', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('deadlines')
-        .select('*')
-        .eq('user_id', user.id);
-      if (error) throw error;
-      return data as Deadline[];
-    },
-    enabled: !!user,
-  });
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -49,11 +34,21 @@ export function CalendarPage() {
   const selectedDeadlines = selectedDate ? getDeadlinesForDay(selectedDate) : [];
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
+      {/* Weekly Stats */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <WeeklyStats />
+      </motion.div>
+
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
         className="mb-6"
       >
         <div className="flex items-center justify-between">
@@ -170,6 +165,7 @@ export function CalendarPage() {
               <DeadlineCard
                 key={deadline.id}
                 deadline={deadline}
+                category={categories.find(c => c.id === deadline.category_id)}
                 onClick={() => navigate(`/deadline/${deadline.id}`)}
               />
             ))

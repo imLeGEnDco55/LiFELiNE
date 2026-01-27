@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Trash2, Palette } from 'lucide-react';
+import { motion, Reorder } from 'framer-motion';
+import { Plus, Trash2, Palette, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { Category } from '@/types/deadline';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +20,7 @@ const PRESET_COLORS = [
 ];
 
 export function CategoryManager() {
-  const { categories, createCategory, deleteCategory } = useDeadlines();
+  const { categories, createCategory, deleteCategory, reorderCategories } = useDeadlines();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [showForm, setShowForm] = useState(false);
@@ -122,23 +123,28 @@ export function CategoryManager() {
         </motion.div>
       )}
 
-      {/* Categories List */}
-      <div className="space-y-2">
-        {categories.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No hay categorías
-          </p>
-        ) : (
-          categories.map((category) => (
-            <motion.div
+      {/* Categories List with Drag & Drop */}
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          No hay categorías
+        </p>
+      ) : (
+        <Reorder.Group 
+          axis="y" 
+          values={categories} 
+          onReorder={(newOrder: Category[]) => reorderCategories(newOrder)}
+          className="space-y-2"
+        >
+          {categories.map((category) => (
+            <Reorder.Item
               key={category.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-between p-3 bg-card rounded-lg border border-border"
+              value={category}
+              className="flex items-center justify-between p-3 bg-card rounded-lg border border-border cursor-grab active:cursor-grabbing"
             >
               <div className="flex items-center gap-3">
+                <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span 
-                  className="w-4 h-4 rounded-full"
+                  className="w-4 h-4 rounded-full shrink-0"
                   style={{ backgroundColor: category.color }}
                 />
                 <span className="font-medium">{category.name}</span>
@@ -151,10 +157,10 @@ export function CategoryManager() {
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
-            </motion.div>
-          ))
-        )}
-      </div>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+      )}
     </div>
   );
 }
