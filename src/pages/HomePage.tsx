@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale';
 import { Plus, Filter, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
+import { WeeklyStats } from '@/components/stats/WeeklyStats';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ export function HomePage() {
   const { deadlines, subtasksMap, categories } = useDeadlines();
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showStats, setShowStats] = useState(true);
 
   const filteredDeadlines = deadlines.filter(deadline => {
     // Category filter
@@ -54,7 +56,7 @@ export function HomePage() {
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Usuario';
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
@@ -77,6 +79,17 @@ export function HomePage() {
           </Button>
         </div>
       </motion.header>
+
+      {/* Weekly Stats */}
+      {showStats && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6"
+        >
+          <WeeklyStats />
+        </motion.div>
+      )}
 
       {/* Category Pills */}
       <motion.div 

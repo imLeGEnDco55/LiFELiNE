@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield } from 'lucide-react';
+import { User, LogOut, Moon, Bell, Shield, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { CategoryManager } from '@/components/settings/CategoryManager';
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function SettingsPage() {
   const email = user?.email || '';
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 pb-24">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
@@ -50,6 +51,16 @@ export function SettingsPage() {
             <p className="text-sm text-muted-foreground truncate">{email}</p>
           </div>
         </div>
+      </motion.div>
+
+      {/* Category Manager */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.05 }}
+        className="mb-8 p-4 bg-card rounded-xl border border-border"
+      >
+        <CategoryManager />
       </motion.div>
 
       {/* Settings Options */}
@@ -102,7 +113,7 @@ export function SettingsPage() {
 
       {/* Version */}
       <p className="text-center text-muted-foreground text-xs mt-8">
-        Deadliner v1.0.0
+        Deadliner v1.0.0 (Local Mode)
       </p>
     </div>
   );
