@@ -4,10 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, Pause, SkipForward, Coffee, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
-import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Deadline } from '@/types/deadline';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -28,79 +25,28 @@ const SESSION_LABELS = {
 export function FocusPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { deadlines, createFocusSession, completeFocusSession, weeklyStats } = useDeadlines();
   
   const deadlineId = searchParams.get('deadline');
+  const deadline = deadlineId ? deadlines.find(d => d.id === deadlineId) : null;
   
   const [sessionType, setSessionType] = useState<SessionType>('work');
   const [timeLeft, setTimeLeft] = useState(SESSION_DURATIONS.work);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
-
-  const { data: deadline } = useQuery({
-    queryKey: ['deadline', deadlineId],
-    queryFn: async () => {
-      if (!deadlineId) return null;
-      const { data, error } = await supabase
-        .from('deadlines')
-        .select('*')
-        .eq('id', deadlineId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Deadline | null;
-    },
-    enabled: !!deadlineId,
-  });
-
-  const { data: todaysSessions = 0 } = useQuery({
-    queryKey: ['focus-sessions-today', user?.id],
-    queryFn: async () => {
-      if (!user) return 0;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { count, error } = await supabase
-        .from('focus_sessions')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('session_type', 'work')
-        .not('completed_at', 'is', null)
-        .gte('started_at', today.toISOString());
-      
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!user,
-  });
-
-  const saveFocusSession = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error('Not authenticated');
-      const { error } = await supabase.from('focus_sessions').insert({
-        user_id: user.id,
-        deadline_id: deadlineId || null,
-        duration_minutes: SESSION_DURATIONS[sessionType] / 60,
-        session_type: sessionType,
-        completed_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['focus-sessions-today'] });
-      if (sessionType === 'work') {
-        setSessionsCompleted(prev => prev + 1);
-        toast.success('¡Sesión completada! 🎉');
-      }
-    },
-  });
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const handleSessionComplete = useCallback(() => {
-    saveFocusSession.mutate();
-    setIsRunning(false);
+    if (currentSessionId) {
+      completeFocusSession(currentSessionId);
+    }
     
-    // Determine next session type
+    setIsRunning(false);
+    setCurrentSessionId(null);
+    
     if (sessionType === 'work') {
+      setSessionsCompleted(prev => prev + 1);
+      toast.success('¡Sesión completada! 🎉');
       const nextType = (sessionsCompleted + 1) % 4 === 0 ? 'long_break' : 'short_break';
       setSessionType(nextType);
       setTimeLeft(SESSION_DURATIONS[nextType]);
@@ -108,7 +54,7 @@ export function FocusPage() {
       setSessionType('work');
       setTimeLeft(SESSION_DURATIONS.work);
     }
-  }, [sessionType, sessionsCompleted, saveFocusSession]);
+  }, [sessionType, sessionsCompleted, currentSessionId, completeFocusSession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -125,11 +71,22 @@ export function FocusPage() {
   }, [isRunning, timeLeft, handleSessionComplete]);
 
   const toggleTimer = () => {
+    if (!isRunning) {
+      // Start a new session
+      const session = createFocusSession({
+        deadline_id: deadlineId || null,
+        duration_minutes: SESSION_DURATIONS[sessionType] / 60,
+        session_type: sessionType,
+        completed_at: null,
+      });
+      setCurrentSessionId(session.id);
+    }
     setIsRunning(prev => !prev);
   };
 
   const skipSession = () => {
     setIsRunning(false);
+    setCurrentSessionId(null);
     if (sessionType === 'work') {
       setSessionType('short_break');
       setTimeLeft(SESSION_DURATIONS.short_break);
@@ -141,6 +98,7 @@ export function FocusPage() {
 
   const resetTimer = () => {
     setIsRunning(false);
+    setCurrentSessionId(null);
     setTimeLeft(SESSION_DURATIONS[sessionType]);
   };
 
@@ -148,6 +106,7 @@ export function FocusPage() {
   const seconds = timeLeft % 60;
   const progress = ((SESSION_DURATIONS[sessionType] - timeLeft) / SESSION_DURATIONS[sessionType]) * 100;
   const isBreak = sessionType !== 'work';
+  const todaysSessions = weeklyStats.todaySessionsCount;
 
   return (
     <div className="px-4 py-6 min-h-screen flex flex-col">
