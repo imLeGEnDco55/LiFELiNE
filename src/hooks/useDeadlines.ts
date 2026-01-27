@@ -1,7 +1,7 @@
 import { useLocalStorage } from './useLocalStorage';
 import { Deadline, Subtask, Category, FocusSession, DEFAULT_CATEGORIES } from '@/types/deadline';
 import { useCallback, useMemo } from 'react';
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { startOfWeek, endOfWeek, isWithinInterval, parseISO, startOfDay, subDays, isSameDay } from 'date-fns';
 
 const MOCK_USER_ID = 'local-test-user';
 
@@ -194,6 +194,85 @@ export function useDeadlines() {
     };
   }, [deadlines, focusSessions]);
 
+  // Streak calculation
+  const streakStats = useMemo(() => {
+    // Get all activity dates (deadlines completed + focus sessions)
+    const activityDates = new Set<string>();
+    
+    deadlines.forEach(d => {
+      if (d.completed_at) {
+        const date = startOfDay(parseISO(d.completed_at));
+        activityDates.add(date.toISOString());
+      }
+    });
+    
+    focusSessions.forEach(s => {
+      if (s.completed_at && s.session_type === 'work') {
+        const date = startOfDay(parseISO(s.started_at));
+        activityDates.add(date.toISOString());
+      }
+    });
+
+    // Sort dates descending
+    const sortedDates = Array.from(activityDates)
+      .map(d => new Date(d))
+      .sort((a, b) => b.getTime() - a.getTime());
+
+    if (sortedDates.length === 0) {
+      return { currentStreak: 0, longestStreak: 0, todayActive: false };
+    }
+
+    const today = startOfDay(new Date());
+    const yesterday = subDays(today, 1);
+    
+    // Check if today has activity
+    const todayActive = sortedDates.some(d => isSameDay(d, today));
+    
+    // Calculate current streak
+    let currentStreak = 0;
+    let checkDate = todayActive ? today : yesterday;
+    
+    // If no activity today or yesterday, streak is 0
+    if (!todayActive && !sortedDates.some(d => isSameDay(d, yesterday))) {
+      currentStreak = 0;
+    } else {
+      for (let i = 0; i < 365; i++) {
+        const hasActivity = sortedDates.some(d => isSameDay(d, checkDate));
+        if (hasActivity) {
+          currentStreak++;
+          checkDate = subDays(checkDate, 1);
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Calculate longest streak
+    let longestStreak = 0;
+    let tempStreak = 0;
+    let prevDate: Date | null = null;
+
+    // Sort ascending for longest streak calculation
+    const ascendingDates = [...sortedDates].sort((a, b) => a.getTime() - b.getTime());
+    
+    ascendingDates.forEach(date => {
+      if (prevDate === null) {
+        tempStreak = 1;
+      } else {
+        const expectedNext = subDays(date, -1); // Add 1 day
+        if (isSameDay(prevDate, subDays(date, 1))) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+      prevDate = date;
+    });
+
+    return { currentStreak, longestStreak, todayActive };
+  }, [deadlines, focusSessions]);
+
   return {
     deadlines: deadlines.sort((a, b) => new Date(a.deadline_at).getTime() - new Date(b.deadline_at).getTime()),
     subtasks,
@@ -201,6 +280,7 @@ export function useDeadlines() {
     focusSessions,
     subtasksMap: getSubtasksMap(),
     weeklyStats,
+    streakStats,
     createDeadline,
     updateDeadline,
     deleteDeadline,
