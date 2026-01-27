@@ -1,7 +1,10 @@
-import { motion } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield, Tag } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -10,6 +13,8 @@ import { CategoryManager } from '@/components/settings/CategoryManager';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useLocalAuth();
+  const { settings, isSupported, toggleNotifications, toggle24h, toggle1h } = useNotifications();
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -75,12 +80,112 @@ export function SettingsPage() {
           label="Editar Perfil" 
           onClick={() => toast.info('Próximamente')} 
         />
-        <SettingsItem 
-          icon={Bell} 
-          label="Notificaciones" 
-          onClick={() => toast.info('Próximamente')} 
-          badge="Próximamente"
-        />
+        
+        {/* Notifications Section */}
+        <div className="space-y-0">
+          <button
+            onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+            className={cn(
+              "w-full flex items-center gap-4 p-4 bg-card border border-border",
+              "transition-colors hover:bg-accent",
+              showNotificationSettings ? "rounded-t-xl" : "rounded-xl"
+            )}
+          >
+            <Bell className="w-5 h-5 text-muted-foreground" />
+            <span className="flex-1 text-left font-medium">Notificaciones</span>
+            {settings.enabled ? (
+              <span className="flex items-center gap-1 text-xs bg-success/20 text-success px-2 py-1 rounded-full">
+                <BellRing className="w-3 h-3" />
+                Activas
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
+                <BellOff className="w-3 h-3" />
+                Inactivas
+              </span>
+            )}
+            <ChevronRight className={cn(
+              "w-5 h-5 text-muted-foreground transition-transform",
+              showNotificationSettings && "rotate-90"
+            )} />
+          </button>
+          
+          <AnimatePresence>
+            {showNotificationSettings && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden bg-card border-x border-b border-border rounded-b-xl"
+              >
+                <div className="p-4 space-y-4">
+                  {!isSupported ? (
+                    <p className="text-sm text-muted-foreground">
+                      Tu navegador no soporta notificaciones push.
+                    </p>
+                  ) : (
+                    <>
+                      {/* Master toggle */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">Habilitar notificaciones</p>
+                          <p className="text-xs text-muted-foreground">
+                            {settings.permission === 'denied' 
+                              ? 'Bloqueadas en el navegador' 
+                              : 'Recibe alertas de deadlines'
+                            }
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={settings.enabled}
+                          onCheckedChange={toggleNotifications}
+                          disabled={settings.permission === 'denied'}
+                        />
+                      </div>
+
+                      {settings.enabled && (
+                        <>
+                          <div className="h-px bg-border" />
+                          
+                          {/* 24h notification */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-warning" />
+                              <div>
+                                <p className="text-sm">24 horas antes</p>
+                                <p className="text-xs text-muted-foreground">Aviso anticipado</p>
+                              </div>
+                            </div>
+                            <Switch 
+                              checked={settings.notify24h}
+                              onCheckedChange={toggle24h}
+                            />
+                          </div>
+
+                          {/* 1h notification */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-urgent" />
+                              <div>
+                                <p className="text-sm">1 hora antes</p>
+                                <p className="text-xs text-muted-foreground">Alerta urgente</p>
+                              </div>
+                            </div>
+                            <Switch 
+                              checked={settings.notify1h}
+                              onCheckedChange={toggle1h}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         <SettingsItem 
           icon={Moon} 
           label="Tema Oscuro" 
