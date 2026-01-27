@@ -1,4 +1,4 @@
-import { Home, Calendar, ListTodo, Settings, Timer } from 'lucide-react';
+import { Home, Calendar, ListTodo, Settings, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 const navItems = [
   { icon: Home, label: 'Inicio', path: '/' },
   { icon: Calendar, label: 'Calendario', path: '/calendar' },
-  { icon: Timer, label: 'Focus', path: '/focus' },
+  { icon: BarChart3, label: 'Stats', path: '/stats' },
   { icon: ListTodo, label: 'Tareas', path: '/tasks' },
   { icon: Settings, label: 'Ajustes', path: '/settings' },
 ];

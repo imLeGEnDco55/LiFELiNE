@@ -6,7 +6,7 @@ import { es } from 'date-fns/locale';
 import { Plus, Filter, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
-
+import { FocusBubble } from '@/components/focus/FocusBubble';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { cn } from '@/lib/utils';
@@ -193,6 +193,9 @@ export function HomePage() {
           ))
         )}
       </motion.div>
+
+      {/* Focus Bubble */}
+      <FocusBubble />
     </div>
   );
 }

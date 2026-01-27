@@ -12,6 +12,7 @@ import { HomePage } from "@/pages/HomePage";
 import { CreateDeadlinePage } from "@/pages/CreateDeadlinePage";
 import { DeadlineDetailPage } from "@/pages/DeadlineDetailPage";
 import { CalendarPage } from "@/pages/CalendarPage";
+import { StatsPage } from "@/pages/StatsPage";
 import { FocusPage } from "@/pages/FocusPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { SettingsPage } from "@/pages/SettingsPage";
@@ -77,6 +78,7 @@ const App = () => (
           }>
             <Route path="/" element={<HomePage />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/stats" element={<StatsPage />} />
             <Route path="/focus" element={<FocusPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/settings" element={<SettingsPage />} />
