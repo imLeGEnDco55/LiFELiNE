@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useFeedbackSettings } from './useFeedbackSettings';
 
 type FeedbackType = 'success' | 'complete' | 'break' | 'tick';
 
@@ -31,7 +32,10 @@ const HAPTIC_PATTERNS: Record<FeedbackType, number | number[]> = {
 };
 
 export function useFeedback() {
+  const { settings } = useFeedbackSettings();
+
   const playSound = useCallback((type: FeedbackType) => {
+    if (!settings.soundEnabled) return;
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const notes = SOUNDS[type];
@@ -60,9 +64,10 @@ export function useFeedback() {
     } catch (error) {
       console.warn('Audio feedback not available:', error);
     }
-  }, []);
+  }, [settings.soundEnabled]);
 
   const triggerHaptic = useCallback((type: FeedbackType) => {
+    if (!settings.hapticEnabled) return;
     try {
       if ('vibrate' in navigator) {
         navigator.vibrate(HAPTIC_PATTERNS[type]);
@@ -70,7 +75,7 @@ export function useFeedback() {
     } catch (error) {
       console.warn('Haptic feedback not available:', error);
     }
-  }, []);
+  }, [settings.hapticEnabled]);
 
   const triggerFeedback = useCallback((type: FeedbackType) => {
     playSound(type);

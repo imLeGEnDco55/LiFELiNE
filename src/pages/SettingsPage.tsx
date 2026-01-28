@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock } from 'lucide-react';
+import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useFeedbackSettings } from '@/hooks/useFeedbackSettings';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useLocalAuth();
   const { settings, isSupported, toggleNotifications, toggle24h, toggle1h } = useNotifications();
+  const { settings: feedbackSettings, toggleSound, toggleHaptic } = useFeedbackSettings();
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   const handleSignOut = async () => {
@@ -184,6 +186,39 @@ export function SettingsPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Feedback Settings */}
+        <div className="p-4 bg-card rounded-xl border border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Volume2 className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">Sonido</p>
+                <p className="text-xs text-muted-foreground">Feedback sonoro al completar</p>
+              </div>
+            </div>
+            <Switch 
+              checked={feedbackSettings.soundEnabled}
+              onCheckedChange={toggleSound}
+            />
+          </div>
+          
+          <div className="h-px bg-border" />
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Vibrate className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">Vibración</p>
+                <p className="text-xs text-muted-foreground">Feedback háptico al completar</p>
+              </div>
+            </div>
+            <Switch 
+              checked={feedbackSettings.hapticEnabled}
+              onCheckedChange={toggleHaptic}
+            />
+          </div>
         </div>
 
         <SettingsItem 
