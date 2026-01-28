@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, GripVertical } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, GripVertical, Skull } from 'lucide-react';
+import { format, parseISO, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
+import { AutopsyModal } from '@/components/vitality/AutopsyModal';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -32,6 +33,7 @@ export function DeadlineDetailPage() {
   } = useDeadlines();
   const { completeFeedback, tickFeedback } = useFeedback();
   const [newSubtask, setNewSubtask] = useState('');
+  const [autopsyOpen, setAutopsyOpen] = useState(false);
 
   const deadline = deadlines.find(d => d.id === id);
   const subtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
@@ -45,6 +47,7 @@ export function DeadlineDetailPage() {
   );
 
   const isCompleted = !!deadline?.completed_at;
+  const isOverdue = deadline ? isBefore(parseISO(deadline.deadline_at), new Date()) && !isCompleted : false;
   const status = getDeadlineStatus(timeRemaining, isCompleted);
   const completedCount = subtasks.filter(s => s.completed).length;
   const progressPercentage = subtasks.length > 0 
@@ -108,15 +111,52 @@ export function DeadlineDetailPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-destructive"
-          onClick={handleDeleteDeadline}
-        >
-          <Trash2 className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {isOverdue && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-urgent text-urgent hover:bg-urgent/10"
+              onClick={() => setAutopsyOpen(true)}
+            >
+              <Skull className="w-4 h-4 mr-1.5" />
+              Ver Autopsia
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-destructive"
+            onClick={handleDeleteDeadline}
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        </div>
       </motion.header>
+
+      {/* Overdue Banner */}
+      {isOverdue && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 rounded-xl bg-urgent/10 border border-urgent/30"
+        >
+          <div className="flex items-center gap-3">
+            <motion.div
+              animate={{ rotate: [0, -10, 10, -10, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Skull className="w-6 h-6 text-urgent" />
+            </motion.div>
+            <div>
+              <h3 className="font-semibold text-urgent">Deadline Vencido</h3>
+              <p className="text-xs text-muted-foreground">
+                Revisa el reporte de autopsia para analizar qué salió mal
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Progress Circle */}
       <motion.div 
@@ -175,7 +215,7 @@ export function DeadlineDetailPage() {
       </motion.div>
 
       {/* Next Subtask Highlight */}
-      {nextSubtask && !isCompleted && (
+      {nextSubtask && !isCompleted && !isOverdue && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -293,6 +333,14 @@ export function DeadlineDetailPage() {
           </Button>
         </motion.div>
       )}
+
+      {/* Autopsy Modal */}
+      <AutopsyModal
+        deadline={deadline}
+        subtasks={subtasks}
+        open={autopsyOpen}
+        onOpenChange={setAutopsyOpen}
+      />
     </div>
   );
 }
