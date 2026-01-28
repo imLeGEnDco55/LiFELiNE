@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
@@ -42,7 +42,7 @@ export function AuthPage() {
       } else {
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
-        toast.success('¡Cuenta creada! Bienvenido a Deadliner');
+        toast.success('¡Cuenta creada! Bienvenido a LiFELiNE');
         navigate('/');
       }
     } catch (error: any) {
@@ -61,11 +61,11 @@ export function AuthPage() {
         className="text-center mb-10"
       >
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary glow-primary mb-4">
-          <Clock className="w-10 h-10 text-primary-foreground" />
+          <Heart className="w-10 h-10 text-primary-foreground" />
         </div>
-        <h1 className="text-3xl font-bold text-gradient-primary">Deadliner</h1>
+        <h1 className="text-3xl font-bold text-gradient-primary">LiFELiNE</h1>
         <p className="text-muted-foreground mt-2">
-          Transforma tus metas en countdowns
+          Tu productividad tiene pulso
         </p>
       </motion.div>
 

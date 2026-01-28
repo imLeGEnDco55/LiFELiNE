@@ -7,6 +7,8 @@ import { Plus, Filter, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
 import { FocusBubble } from '@/components/focus/FocusBubble';
+import { HeartbeatMonitor } from '@/components/vitality/HeartbeatMonitor';
+import { ResuscitationEffect } from '@/components/vitality/ResuscitationEffect';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { cn } from '@/lib/utils';
@@ -57,11 +59,14 @@ export function HomePage() {
 
   return (
     <div className="px-4 py-6 pb-24">
+      {/* Resuscitation Effect */}
+      <ResuscitationEffect />
+
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="mb-4"
       >
         <p className="text-sm text-muted-foreground">
           {format(today, "EEEE, d 'de' MMMM", { locale: es })}
@@ -80,12 +85,22 @@ export function HomePage() {
         </div>
       </motion.header>
 
+      {/* LiFELiNE Monitor */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.05 }}
+        className="mb-5"
+      >
+        <HeartbeatMonitor />
+      </motion.div>
+
 
       {/* Category Pills */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.05 }}
+        transition={{ delay: 0.1 }}
         className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2"
       >
         <Button
@@ -126,7 +141,7 @@ export function HomePage() {
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
+        transition={{ delay: 0.15 }}
         className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2"
       >
         {filterOptions.map(({ value, label }) => (
