@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocalAuth } from "@/hooks/useLocalAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { SplashScreen } from "@/components/pwa/SplashScreen";
 
 // Pages
 import { AuthPage } from "@/pages/AuthPage";
@@ -56,52 +59,70 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Auth */}
-          <Route path="/auth" element={
-            <PublicRoute>
-              <AuthPage />
-            </PublicRoute>
-          } />
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
 
-          {/* Protected Routes */}
-          <Route element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/stats" element={<StatsPage />} />
-            <Route path="/focus" element={<FocusPage />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
+  useEffect(() => {
+    // Auto-hide splash after animation completes
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
 
-          {/* Detail pages (also protected but without bottom nav) */}
-          <Route path="/create" element={
-            <ProtectedRoute>
-              <CreateDeadlinePage />
-            </ProtectedRoute>
-          } />
-          <Route path="/deadline/:id" element={
-            <ProtectedRoute>
-              <DeadlineDetailPage />
-            </ProtectedRoute>
-          } />
+    return () => clearTimeout(timer);
+  }, []);
 
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        
+        <AnimatePresence>
+          {showSplash && <SplashScreen />}
+        </AnimatePresence>
+        
+        <BrowserRouter>
+          <Routes>
+            {/* Auth */}
+            <Route path="/auth" element={
+              <PublicRoute>
+                <AuthPage />
+              </PublicRoute>
+            } />
+
+            {/* Protected Routes */}
+            <Route element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/focus" element={<FocusPage />} />
+              <Route path="/tasks" element={<TasksPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+
+            {/* Detail pages (also protected but without bottom nav) */}
+            <Route path="/create" element={
+              <ProtectedRoute>
+                <CreateDeadlinePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/deadline/:id" element={
+              <ProtectedRoute>
+                <DeadlineDetailPage />
+              </ProtectedRoute>
+            } />
+
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
