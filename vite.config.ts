@@ -20,9 +20,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
-        name: "Deadliner - Gestión de Deadlines",
-        short_name: "Deadliner",
-        description: "Gestiona tus deadlines y mantén el enfoque con técnica Pomodoro",
+        name: "LiFELiNE - Tu pulso de productividad",
+        short_name: "LiFELiNE",
+        description: "Tu productividad tiene pulso. Mantén vivo tu progreso con LiFELiNE.",
         theme_color: "#0a0a0a",
         background_color: "#0a0a0a",
         display: "standalone",
