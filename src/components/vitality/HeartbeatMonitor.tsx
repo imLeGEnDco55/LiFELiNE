@@ -8,35 +8,30 @@ const STATE_CONFIG: Record<VitalityState, {
   color: string;
   glowColor: string;
   pulseSpeed: number;
-  label: string;
   pathVariant: 'normal' | 'weak' | 'erratic' | 'flat';
 }> = {
   vital: {
     color: 'hsl(142, 76%, 50%)',
     glowColor: 'hsl(142, 76%, 50%)',
     pulseSpeed: 1,
-    label: 'VITAL',
     pathVariant: 'normal',
   },
   weak: {
     color: 'hsl(45, 100%, 55%)',
     glowColor: 'hsl(45, 100%, 55%)',
     pulseSpeed: 1.5,
-    label: 'DÉBIL',
     pathVariant: 'weak',
   },
   critical: {
     color: 'hsl(25, 95%, 55%)',
     glowColor: 'hsl(25, 95%, 55%)',
     pulseSpeed: 2,
-    label: 'CRÍTICO',
     pathVariant: 'erratic',
   },
   flatline: {
     color: 'hsl(0, 84%, 60%)',
     glowColor: 'hsl(0, 84%, 60%)',
     pulseSpeed: 0,
-    label: 'SIN PULSO',
     pathVariant: 'flat',
   },
 };
@@ -50,11 +45,10 @@ const ECG_PATHS = {
 };
 
 interface HeartbeatMonitorProps {
-  compact?: boolean;
   className?: string;
 }
 
-export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonitorProps) {
+export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
   const vitality = useVitality();
   const config = STATE_CONFIG[vitality.state];
   const { tickFeedback } = useFeedback();
@@ -68,117 +62,49 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
     prevState.current = vitality.state;
   }, [vitality.state, tickFeedback]);
 
-  if (compact) {
-    return (
-      <div className={cn("flex items-center gap-2", className)}>
-        <div 
-          className="relative w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ 
-            backgroundColor: `${config.color}20`,
-            boxShadow: vitality.state !== 'flatline' ? `0 0 10px ${config.glowColor}40` : 'none'
-          }}
-        >
-          <motion.div
-            animate={vitality.state !== 'flatline' ? {
-              scale: [1, 1.2, 1],
-            } : {}}
-            transition={{
-              duration: config.pulseSpeed,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="text-lg"
-          >
-            {vitality.state === 'flatline' ? '💀' : '🫀'}
-          </motion.div>
-        </div>
-        <div className="flex flex-col">
-          <span 
-            className="text-xs font-bold tracking-wider"
-            style={{ color: config.color }}
-          >
-            {config.label}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {vitality.score}%
-          </span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "relative bg-card rounded-xl border border-border p-4 overflow-hidden",
+        "relative h-16 bg-card rounded-xl border border-border overflow-hidden flex items-center px-4 gap-3",
         className
       )}
       style={{
         boxShadow: vitality.state !== 'flatline' 
-          ? `0 0 30px ${config.glowColor}20, inset 0 0 30px ${config.glowColor}05`
+          ? `0 0 20px ${config.glowColor}15, inset 0 0 20px ${config.glowColor}05`
           : 'none'
       }}
     >
       {/* Background grid effect */}
       <div 
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-5"
         style={{
           backgroundImage: `
-            linear-gradient(${config.color}20 1px, transparent 1px),
-            linear-gradient(90deg, ${config.color}20 1px, transparent 1px)
+            linear-gradient(${config.color}30 1px, transparent 1px),
+            linear-gradient(90deg, ${config.color}30 1px, transparent 1px)
           `,
-          backgroundSize: '20px 20px',
+          backgroundSize: '12px 12px',
         }}
       />
 
-      {/* Header */}
-      <div className="relative flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={vitality.state !== 'flatline' ? {
-              scale: [1, 1.15, 1],
-            } : {}}
-            transition={{
-              duration: config.pulseSpeed,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="text-xl"
-          >
-            {vitality.state === 'flatline' ? '💀' : '🫀'}
-          </motion.div>
-          <div>
-            <h3 className="text-sm font-bold tracking-wide" style={{ color: config.color }}>
-              LiFELiNE
-            </h3>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-              Monitor de Productividad
-            </p>
-          </div>
-        </div>
-        
-        <div className="text-right">
-          <motion.div
-            animate={vitality.state !== 'flatline' ? { opacity: [1, 0.5, 1] } : {}}
-            transition={{ duration: config.pulseSpeed, repeat: Infinity }}
-            className="text-2xl font-bold font-mono"
-            style={{ color: config.color }}
-          >
-            {vitality.score}
-          </motion.div>
-          <span 
-            className="text-[10px] font-semibold tracking-wider"
-            style={{ color: config.color }}
-          >
-            {config.label}
-          </span>
-        </div>
-      </div>
+      {/* Left: Emoji with pulse */}
+      <motion.div
+        animate={vitality.state !== 'flatline' ? {
+          scale: [1, 1.15, 1],
+        } : {}}
+        transition={{
+          duration: config.pulseSpeed,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="relative z-10 text-2xl shrink-0"
+      >
+        {vitality.state === 'flatline' ? '💀' : '🫀'}
+      </motion.div>
 
-      {/* ECG Display */}
-      <div className="relative h-16 mb-3">
+      {/* Center: ECG Line */}
+      <div className="relative flex-1 h-10">
         <svg 
           viewBox="0 0 100 100" 
           preserveAspectRatio="none"
@@ -189,8 +115,8 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
             d={ECG_PATHS[config.pathVariant]}
             fill="none"
             stroke={config.color}
-            strokeWidth="1"
-            strokeOpacity="0.2"
+            strokeWidth="1.5"
+            strokeOpacity="0.15"
           />
           
           {/* Animated trace */}
@@ -199,7 +125,7 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
               d={ECG_PATHS[config.pathVariant]}
               fill="none"
               stroke={config.color}
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ 
@@ -219,7 +145,7 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
                 }
               }}
               style={{
-                filter: `drop-shadow(0 0 3px ${config.glowColor})`,
+                filter: `drop-shadow(0 0 4px ${config.glowColor})`,
               }}
             />
           ) : (
@@ -227,12 +153,12 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
               d={ECG_PATHS.flat}
               fill="none"
               stroke={config.color}
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
-              animate={{ opacity: [1, 0.5, 1] }}
+              animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
               style={{
-                filter: `drop-shadow(0 0 3px ${config.glowColor})`,
+                filter: `drop-shadow(0 0 4px ${config.glowColor})`,
               }}
             />
           )}
@@ -246,7 +172,7 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
               y2="100"
               stroke={config.color}
               strokeWidth="2"
-              strokeOpacity="0.5"
+              strokeOpacity="0.4"
               animate={{ x1: [0, 100], x2: [0, 100] }}
               transition={{
                 duration: config.pulseSpeed * 1.5,
@@ -256,45 +182,17 @@ export function HeartbeatMonitor({ compact = false, className }: HeartbeatMonito
             />
           )}
         </svg>
-
-        {/* Glow overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse at center, ${config.glowColor}10 0%, transparent 70%)`,
-          }}
-        />
       </div>
 
-      {/* Message */}
-      <motion.p 
-        key={vitality.message}
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center text-sm text-muted-foreground"
+      {/* Right: Score with pulse effect */}
+      <motion.div
+        animate={vitality.state !== 'flatline' ? { opacity: [1, 0.6, 1] } : {}}
+        transition={{ duration: config.pulseSpeed, repeat: Infinity }}
+        className="relative z-10 text-2xl font-bold font-mono shrink-0 tabular-nums"
+        style={{ color: config.color }}
       >
-        {vitality.message}
-      </motion.p>
-
-      {/* Stats row */}
-      <div className="flex justify-between mt-3 pt-3 border-t border-border/50">
-        <Stat label="Racha" value={`${vitality.streakDays}d`} color={config.color} />
-        <Stat label="Vencidas" value={vitality.overdueCount.toString()} color={vitality.overdueCount > 0 ? 'hsl(0, 84%, 60%)' : config.color} />
-        <Stat label="Completadas" value={vitality.completedRecently.toString()} color={config.color} />
-      </div>
+        {vitality.score}
+      </motion.div>
     </motion.div>
-  );
-}
-
-function Stat({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div className="text-center">
-      <div className="text-lg font-bold font-mono" style={{ color }}>
-        {value}
-      </div>
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
-        {label}
-      </div>
-    </div>
   );
 }
