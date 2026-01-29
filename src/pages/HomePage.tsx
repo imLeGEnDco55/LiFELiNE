@@ -6,8 +6,6 @@ import { es } from 'date-fns/locale';
 import { Plus, Filter, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
-import { FocusBubble } from '@/components/focus/FocusBubble';
-import { HeartbeatMonitor } from '@/components/vitality/HeartbeatMonitor';
 import { ResuscitationEffect } from '@/components/vitality/ResuscitationEffect';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
@@ -85,15 +83,6 @@ export function HomePage() {
         </div>
       </motion.header>
 
-      {/* LiFELiNE Monitor */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.05 }}
-        className="mb-5"
-      >
-        <HeartbeatMonitor />
-      </motion.div>
 
 
       {/* Category Pills */}
@@ -209,8 +198,6 @@ export function HomePage() {
         )}
       </motion.div>
 
-      {/* Focus Bubble */}
-      <FocusBubble />
     </div>
   );
 }

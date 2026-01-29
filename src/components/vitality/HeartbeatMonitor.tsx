@@ -64,27 +64,39 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "relative h-16 bg-card rounded-xl border border-border overflow-hidden flex items-center px-4 gap-3",
+        "relative h-16 rounded-xl overflow-hidden flex items-center px-4 gap-3",
+        // Glassmorphism effect
+        "bg-[hsl(210,60%,12%)/60] backdrop-blur-md",
+        "border border-[hsl(200,80%,40%)/30]",
         className
       )}
       style={{
         boxShadow: vitality.state !== 'flatline' 
-          ? `0 0 20px ${config.glowColor}15, inset 0 0 20px ${config.glowColor}05`
-          : 'none'
+          ? `0 0 30px hsl(200 80% 50% / 0.15), inset 0 1px 1px hsl(200 80% 70% / 0.1)`
+          : 'inset 0 1px 1px hsl(200 80% 70% / 0.05)',
+        background: 'linear-gradient(135deg, hsl(210 60% 15% / 0.7) 0%, hsl(220 50% 10% / 0.8) 100%)',
       }}
     >
-      {/* Background grid effect */}
+      {/* Medical grid background */}
       <div 
-        className="absolute inset-0 opacity-5"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `
-            linear-gradient(${config.color}30 1px, transparent 1px),
-            linear-gradient(90deg, ${config.color}30 1px, transparent 1px)
+            linear-gradient(hsl(200 80% 50% / 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(200 80% 50% / 0.3) 1px, transparent 1px)
           `,
           backgroundSize: '12px 12px',
+        }}
+      />
+
+      {/* Glass shine effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, hsl(200 80% 70% / 0.1) 0%, transparent 50%, transparent 100%)',
         }}
       />
 
@@ -145,7 +157,7 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
                 }
               }}
               style={{
-                filter: `drop-shadow(0 0 4px ${config.glowColor})`,
+                filter: `drop-shadow(0 0 6px ${config.glowColor})`,
               }}
             />
           ) : (
@@ -158,7 +170,7 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
               style={{
-                filter: `drop-shadow(0 0 4px ${config.glowColor})`,
+                filter: `drop-shadow(0 0 6px ${config.glowColor})`,
               }}
             />
           )}
@@ -170,14 +182,17 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
               y1="0"
               x2="0"
               y2="100"
-              stroke={config.color}
+              stroke="hsl(200, 80%, 50%)"
               strokeWidth="2"
-              strokeOpacity="0.4"
+              strokeOpacity="0.5"
               animate={{ x1: [0, 100], x2: [0, 100] }}
               transition={{
                 duration: config.pulseSpeed * 1.5,
                 repeat: Infinity,
                 ease: "linear",
+              }}
+              style={{
+                filter: 'drop-shadow(0 0 4px hsl(200, 80%, 50%))',
               }}
             />
           )}
@@ -189,7 +204,10 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
         animate={vitality.state !== 'flatline' ? { opacity: [1, 0.6, 1] } : {}}
         transition={{ duration: config.pulseSpeed, repeat: Infinity }}
         className="relative z-10 text-2xl font-bold font-mono shrink-0 tabular-nums"
-        style={{ color: config.color }}
+        style={{ 
+          color: config.color,
+          textShadow: `0 0 10px ${config.glowColor}`,
+        }}
       >
         {vitality.score}
       </motion.div>

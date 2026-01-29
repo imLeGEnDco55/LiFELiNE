@@ -2,12 +2,13 @@ import { Home, Calendar, ListTodo, Settings, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { PomodoroDrawer } from '@/components/focus/PomodoroDrawer';
 
 const navItems = [
   { icon: Home, label: 'Inicio', path: '/' },
   { icon: Calendar, label: 'Calendario', path: '/calendar' },
+  { type: 'pomodoro' as const }, // Center slot for Pomodoro
   { icon: BarChart3, label: 'Stats', path: '/stats' },
-  { icon: ListTodo, label: 'Tareas', path: '/tasks' },
   { icon: Settings, label: 'Ajustes', path: '/settings' },
 ];
 
@@ -17,7 +18,32 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-area-bottom">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
-        {navItems.map(({ icon: Icon, label, path }) => {
+        {navItems.map((item, index) => {
+          // Special handling for Pomodoro center button
+          if ('type' in item && item.type === 'pomodoro') {
+            return (
+              <PomodoroDrawer key="pomodoro">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={cn(
+                    "relative flex items-center justify-center w-14 h-14 -mt-5",
+                    "rounded-full",
+                    "bg-gradient-to-br from-red-500 to-orange-500",
+                    "shadow-lg",
+                    "text-2xl"
+                  )}
+                  style={{
+                    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+                  }}
+                >
+                  🍅
+                </motion.button>
+              </PomodoroDrawer>
+            );
+          }
+
+          const { icon: Icon, label, path } = item as { icon: typeof Home; label: string; path: string };
           const isActive = location.pathname === path;
           
           return (
