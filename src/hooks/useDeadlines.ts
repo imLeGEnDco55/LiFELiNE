@@ -193,7 +193,7 @@ export function useDeadlines() {
       user_id: MOCK_USER_ID,
       title: subtask.title,
       description: null,
-      deadline_at: subtask.due_at || parentDeadline.deadline_at, // Use subtask due_at or parent deadline
+      deadline_at: parentDeadline.deadline_at, // Use parent deadline date
       priority: parentDeadline.priority,
       category_id: parentDeadline.category_id,
       parent_id: parentDeadline.id,

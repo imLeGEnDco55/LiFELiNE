@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CheckCircle2, Circle, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock } from 'lucide-react';
 import { Deadline, Subtask, Category } from '@/types/deadline';
 import { cn } from '@/lib/utils';
 
@@ -83,51 +83,32 @@ export function SubtasksList({
             <div className="divide-y divide-border">
               {subtasks
                 .sort((a, b) => a.order_index - b.order_index)
-                .map((subtask) => {
-                  const isOverdue = subtask.due_at && new Date(subtask.due_at) < new Date() && !subtask.completed;
-                  const isUrgent = subtask.due_at && !subtask.completed && 
-                    (new Date(subtask.due_at).getTime() - new Date().getTime()) / (1000 * 60 * 60) < 24;
-
-                  return (
-                    <div
-                      key={subtask.id}
-                      className="px-4 py-3 flex items-center gap-3 hover:bg-accent/30 transition-colors"
+                .map((subtask) => (
+                  <div
+                    key={subtask.id}
+                    className="px-4 py-3 flex items-center gap-3 hover:bg-accent/30 transition-colors"
+                  >
+                    <button
+                      onClick={() => onToggleSubtask(subtask.id)}
+                      className="shrink-0"
                     >
-                      <button
-                        onClick={() => onToggleSubtask(subtask.id)}
-                        className="shrink-0"
-                      >
-                        {subtask.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-success" />
-                        ) : (
-                          <Circle className={cn(
-                            "w-5 h-5",
-                            isOverdue ? "text-destructive" : isUrgent ? "text-warning" : "text-muted-foreground"
-                          )} />
-                        )}
-                      </button>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          "text-sm truncate",
-                          subtask.completed && "line-through text-muted-foreground"
-                        )}>
-                          {subtask.title}
-                        </p>
-                      </div>
-
-                      {subtask.due_at && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-xs shrink-0",
-                          isOverdue ? "text-destructive" : isUrgent ? "text-warning" : "text-muted-foreground"
-                        )}>
-                          {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                          <span>{format(new Date(subtask.due_at), 'dd/MM')}</span>
-                        </div>
+                      {subtask.completed ? (
+                        <CheckCircle2 className="w-5 h-5 text-success" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-muted-foreground" />
                       )}
+                    </button>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm truncate",
+                        subtask.completed && "line-through text-muted-foreground"
+                      )}>
+                        {subtask.title}
+                      </p>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
             </div>
           </motion.div>
         );

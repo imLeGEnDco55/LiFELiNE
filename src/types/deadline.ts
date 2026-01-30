@@ -29,7 +29,6 @@ export interface Subtask {
   user_id: string;
   title: string;
   completed: boolean;
-  due_at: string | null;
   order_index: number;
   created_at: string;
   updated_at: string;

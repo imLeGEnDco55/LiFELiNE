@@ -6,6 +6,7 @@ import { Deadline, Subtask, Category } from '@/types/deadline';
 
 interface DeadlinesListProps {
   deadlines: Deadline[];
+  allDeadlines: Deadline[]; // To calculate children count
   subtasksMap: Record<string, Subtask[]>;
   categories: Category[];
   hasFilters: boolean;
@@ -15,12 +16,18 @@ interface DeadlinesListProps {
 
 export function DeadlinesList({
   deadlines,
+  allDeadlines,
   subtasksMap,
   categories,
   hasFilters,
   onDeadlineClick,
   onCreateClick,
 }: DeadlinesListProps) {
+  // Helper to count children for a deadline
+  const getChildrenCount = (deadlineId: string) => {
+    return allDeadlines.filter(d => d.parent_id === deadlineId).length;
+  };
+
   if (deadlines.length === 0) {
     return (
       <div className="text-center py-12">
@@ -58,6 +65,7 @@ export function DeadlinesList({
             deadline={deadline}
             subtasks={subtasksMap[deadline.id]}
             category={categories.find((c) => c.id === deadline.category_id)}
+            childrenCount={getChildrenCount(deadline.id)}
             onClick={() => onDeadlineClick(deadline.id)}
           />
         </motion.div>
