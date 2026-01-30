@@ -76,7 +76,6 @@ export function DeadlineDetailPage() {
       deadline_id: id,
       title,
       completed: false,
-      due_at: null,
       order_index: subtasks.length,
     });
     setNewSubtask('');

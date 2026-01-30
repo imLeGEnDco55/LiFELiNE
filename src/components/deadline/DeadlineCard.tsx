@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, CheckCircle2, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Deadline, Subtask, Category } from '@/types/deadline';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
@@ -10,6 +10,7 @@ interface DeadlineCardProps {
   deadline: Deadline;
   subtasks?: Subtask[];
   category?: Category;
+  childrenCount?: number;
   onClick?: () => void;
 }
 
@@ -27,7 +28,7 @@ const statusLabels = {
   overdue: { text: 'VENCIDO', className: 'bg-urgent/20 text-urgent' },
 };
 
-export function DeadlineCard({ deadline, subtasks = [], category, onClick }: DeadlineCardProps) {
+export function DeadlineCard({ deadline, subtasks = [], category, childrenCount = 0, onClick }: DeadlineCardProps) {
   const timeRemaining = useCountdown(deadline.deadline_at, deadline.created_at);
   const isCompleted = !!deadline.completed_at;
   const status = getDeadlineStatus(timeRemaining, isCompleted);
@@ -74,12 +75,21 @@ export function DeadlineCard({ deadline, subtasks = [], category, onClick }: Dea
               </span>
             )}
           </div>
-          <span className={cn(
-            "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",
-            statusInfo.className
-          )}>
-            {statusInfo.text}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase",
+              statusInfo.className
+            )}>
+              {statusInfo.text}
+            </span>
+            {/* Children indicator */}
+            {childrenCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary text-muted-foreground">
+                <GitBranch className="w-3 h-3" />
+                {childrenCount} anidado{childrenCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
         {isCompleted ? (
           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />

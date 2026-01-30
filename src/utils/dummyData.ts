@@ -104,36 +104,36 @@ export function generateDummyData() {
     },
   ];
 
-  // Subtasks for each deadline
+  // Subtasks for each deadline (without due_at - if needs date, convert to deadline)
   const subtasks: Subtask[] = [
     // Subtasks for demo-1 (Landing page)
-    { id: 'sub-1-1', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Wireframes móvil', completed: true, due_at: null, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-1-2', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Wireframes desktop', completed: true, due_at: null, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-1-3', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Diseño visual hero', completed: false, due_at: addHours(now, 3).toISOString(), order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-1-4', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Sección features', completed: false, due_at: addHours(now, 5).toISOString(), order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-1-5', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Footer y CTA final', completed: false, due_at: null, order_index: 4, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-1-1', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Wireframes móvil', completed: true, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-1-2', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Wireframes desktop', completed: true, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-1-3', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Diseño visual hero', completed: false, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-1-4', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Sección features', completed: false, order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-1-5', deadline_id: 'demo-1', user_id: MOCK_USER_ID, title: 'Footer y CTA final', completed: false, order_index: 4, created_at: now.toISOString(), updated_at: now.toISOString() },
 
     // Subtasks for demo-2 (OAuth)
-    { id: 'sub-2-1', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Configurar Google Cloud', completed: true, due_at: null, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-2-2', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Configurar GitHub OAuth App', completed: false, due_at: addDays(now, 1).toISOString(), order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-2-3', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Implementar flujo de login', completed: false, due_at: null, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-2-4', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Testing end-to-end', completed: false, due_at: addDays(now, 2).toISOString(), order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-2-1', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Configurar Google Cloud', completed: true, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-2-2', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Configurar GitHub OAuth App', completed: false, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-2-3', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Implementar flujo de login', completed: false, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-2-4', deadline_id: 'demo-2', user_id: MOCK_USER_ID, title: 'Testing end-to-end', completed: false, order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
 
     // Subtasks for demo-3 (Campaign)
-    { id: 'sub-3-1', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Revisar métricas actuales', completed: true, due_at: null, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-3-2', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Propuesta de ajustes', completed: false, due_at: addDays(now, 2).toISOString(), order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-3-3', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Aprobación del cliente', completed: false, due_at: null, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-3-1', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Revisar métricas actuales', completed: true, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-3-2', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Propuesta de ajustes', completed: false, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-3-3', deadline_id: 'demo-3', user_id: MOCK_USER_ID, title: 'Aprobación del cliente', completed: false, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
 
     // Subtasks for demo-5 (Presentation)
-    { id: 'sub-5-1', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Recopilar datos de ventas', completed: false, due_at: addDays(now, 3).toISOString(), order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-5-2', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Crear gráficos', completed: false, due_at: addDays(now, 5).toISOString(), order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-5-3', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Diseñar slides', completed: false, due_at: addDays(now, 6).toISOString(), order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-5-4', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Ensayo presentación', completed: false, due_at: null, order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-5-1', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Recopilar datos de ventas', completed: false, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-5-2', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Crear gráficos', completed: false, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-5-3', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Diseñar slides', completed: false, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-5-4', deadline_id: 'demo-5', user_id: MOCK_USER_ID, title: 'Ensayo presentación', completed: false, order_index: 3, created_at: now.toISOString(), updated_at: now.toISOString() },
 
     // Subtasks for demo-6 (Portfolio)
-    { id: 'sub-6-1', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Screenshots de proyectos', completed: true, due_at: null, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-6-2', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Escribir case studies', completed: false, due_at: addDays(now, 3).toISOString(), order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
-    { id: 'sub-6-3', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Actualizar bio', completed: false, due_at: null, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-6-1', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Screenshots de proyectos', completed: true, order_index: 0, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-6-2', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Escribir case studies', completed: false, order_index: 1, created_at: now.toISOString(), updated_at: now.toISOString() },
+    { id: 'sub-6-3', deadline_id: 'demo-6', user_id: MOCK_USER_ID, title: 'Actualizar bio', completed: false, order_index: 2, created_at: now.toISOString(), updated_at: now.toISOString() },
   ];
 
   // Focus sessions - some completed today and this week

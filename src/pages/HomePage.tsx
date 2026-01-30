@@ -120,6 +120,7 @@ export function HomePage() {
           <TabsContent value="deadlines" className="mt-0">
             <DeadlinesList
               deadlines={filteredDeadlines}
+              allDeadlines={deadlines}
               subtasksMap={subtasksMap}
               categories={categories}
               hasFilters={hasFilters}
