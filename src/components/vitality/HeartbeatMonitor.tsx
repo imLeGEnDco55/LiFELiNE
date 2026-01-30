@@ -200,17 +200,30 @@ export function HeartbeatMonitor({ className }: HeartbeatMonitorProps) {
       </div>
 
       {/* Right: Score with pulse effect */}
-      <motion.div
-        animate={vitality.state !== 'flatline' ? { opacity: [1, 0.6, 1] } : {}}
-        transition={{ duration: config.pulseSpeed, repeat: Infinity }}
-        className="relative z-10 text-2xl font-bold font-mono shrink-0 tabular-nums"
-        style={{ 
-          color: config.color,
-          textShadow: `0 0 10px ${config.glowColor}`,
-        }}
-      >
-        {vitality.score}
-      </motion.div>
+      <div className="relative z-10 flex flex-col items-end shrink-0">
+        <motion.div
+          animate={vitality.state !== 'flatline' ? { opacity: [1, 0.6, 1] } : {}}
+          transition={{ duration: config.pulseSpeed, repeat: Infinity }}
+          className="text-2xl font-bold font-mono tabular-nums"
+          style={{ 
+            color: vitality.isOverworking ? 'hsl(280, 80%, 65%)' : config.color,
+            textShadow: vitality.isOverworking 
+              ? '0 0 12px hsl(280, 80%, 65%)' 
+              : `0 0 10px ${config.glowColor}`,
+          }}
+        >
+          {vitality.score}
+          {vitality.isOverworking && (
+            <motion.span
+              animate={{ opacity: [1, 0.5, 1] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+              className="text-xs ml-0.5"
+            >
+              +
+            </motion.span>
+          )}
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
