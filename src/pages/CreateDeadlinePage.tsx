@@ -58,6 +58,7 @@ export function CreateDeadlinePage() {
         deadline_at: deadlineAt.toISOString(),
         priority,
         category_id: selectedCategory,
+        parent_id: null,
       });
 
       toast.success('¡Deadline creado!');
