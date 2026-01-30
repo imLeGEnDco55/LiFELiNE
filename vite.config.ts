@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      base: mode === "production" ? "/LiFELiNE/" : "/",
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
