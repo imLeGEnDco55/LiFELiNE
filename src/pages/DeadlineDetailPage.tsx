@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, Skull, ChevronUp, Lock } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, Skull, ChevronUp, Lock, Pencil } from 'lucide-react';
 import { format, parseISO, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { AutopsyModal } from '@/components/vitality/AutopsyModal';
 import { SubtaskItem } from '@/components/deadline/SubtaskItem';
 import { ChildDeadlinesList } from '@/components/deadline/ChildDeadlinesList';
+import { EditDeadlineModal } from '@/components/deadline/EditDeadlineModal';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -30,6 +31,7 @@ export function DeadlineDetailPage() {
     reorderSubtasks,
     completeDeadline: completeDeadlineFn,
     deleteDeadline: deleteDeadlineFn,
+    updateDeadline,
     categories,
     getChildDeadlines,
     getParentDeadline,
@@ -39,6 +41,7 @@ export function DeadlineDetailPage() {
   const { completeFeedback, tickFeedback } = useFeedback();
   const [newSubtask, setNewSubtask] = useState('');
   const [autopsyOpen, setAutopsyOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const deadline = deadlines.find(d => d.id === id);
   const subtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
@@ -153,6 +156,13 @@ export function DeadlineDetailPage() {
               Ver Autopsia
             </Button>
           )}
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="w-5 h-5" />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
@@ -405,6 +415,16 @@ export function DeadlineDetailPage() {
         subtasks={subtasks}
         open={autopsyOpen}
         onOpenChange={setAutopsyOpen}
+      />
+
+      {/* Edit Modal */}
+      <EditDeadlineModal
+        deadline={deadline}
+        parentDeadline={parentDeadline}
+        categories={categories}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={(updates) => updateDeadline(id!, updates)}
       />
     </div>
   );
