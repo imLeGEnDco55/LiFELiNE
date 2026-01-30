@@ -29,8 +29,8 @@ export default defineConfig(({ mode }) => ({
         background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
-        scope: mode === "production" ? "/deadline-buddy/" : "/",
-        start_url: mode === "production" ? "/deadline-buddy/" : "/",
+        scope: mode === "production" ? "/LiFELiNE/" : "/",
+        start_url: mode === "production" ? "/LiFELiNE/" : "/",
         icons: [
           {
             src: "pwa-192x192.png",
