@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate, FlaskConical, Trash2 } from 'lucide-react';
+import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { CategoryManager } from '@/components/settings/CategoryManager';
-import { loadDummyData, clearAllData } from '@/utils/dummyData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -244,68 +243,6 @@ export function SettingsPage() {
           label="Privacidad" 
           onClick={() => toast.info('Próximamente')} 
         />
-      </motion.div>
-
-      {/* Developer/Testing Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
-        className="mt-8 space-y-2"
-      >
-        <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Desarrollo</p>
-        
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-3 h-auto py-3"
-          onClick={() => {
-            loadDummyData();
-            toast.success('Datos de prueba cargados - recarga la página');
-            setTimeout(() => window.location.reload(), 1000);
-          }}
-        >
-          <FlaskConical className="w-5 h-5 text-primary" />
-          <div className="text-left">
-            <p className="font-medium">Cargar datos de prueba</p>
-            <p className="text-xs text-muted-foreground">7 días de deadlines, subtareas y sesiones</p>
-          </div>
-        </Button>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-3 h-auto py-3 border-destructive/50 text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Borrar todos los datos</p>
-                <p className="text-xs text-destructive/70">Elimina deadlines, subtareas y sesiones</p>
-              </div>
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Borrar todos los datos?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción eliminará todos tus deadlines, subtareas, categorías y sesiones de enfoque. Esta acción no se puede deshacer.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => {
-                  clearAllData();
-                  toast.success('Todos los datos han sido eliminados');
-                  setTimeout(() => window.location.reload(), 1000);
-                }}
-              >
-                Sí, borrar todo
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </motion.div>
 
       {/* Sign Out */}
