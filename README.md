@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# LiFELiNE
 
-## Project info
+LiFELiNE es una Progressive Web App (PWA) diseñada para ayudarte a gestionar tus plazos, tareas y sesiones de enfoque con una interfaz moderna y fluida.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Características Principales
 
-## How can I edit this code?
+- **Dashboard Intuitivo**: Vista general de tus plazos más próximos.
+- **Gestión de Deadlines**: Crea y sigue tus fechas límite importantes.
+- **Modo Enfoque**: Temporizador integrado para sesiones de trabajo profundo.
+- **Calendario**: Visualización visual de tus entregas.
+- **Estadísticas**: Seguimiento de tu productividad.
+- **Tareas**: Lista de tareas integrada.
+- **PWA**: Instalable en escritorio y dispositivos móviles.
 
-There are several ways of editing your application.
+## 🛠 Tecnologías
 
-**Use Lovable**
+Esta aplicación está construida con tecnologías modernas para asegurar rendimiento y escalabilidad:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Frontend**: React, TypeScript, Vite
+- **Estilos**: Tailwind CSS, Shadcn/ui
+- **Estado**: TanStack Query
+- **Routing**: React Router DOM
+- **Backend/Integración**: Supabase
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🏁 Comenzando
 
-**Use your preferred IDE**
+### Pre-requisitos
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js & npm (o Bun/Yarn/PNPM)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Instalación
 
-Follow these steps:
+```bash
+# 1. Clonar el repositorio
+git clone <URL_DEL_REPO>
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 2. Entrar al directorio
+cd lifeline
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 3. Instalar dependencias
+npm install
+# o
+bun install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Iniciar servidor de desarrollo
 npm run dev
+# o
+bun dev
 ```
 
-**Edit a file directly in GitHub**
+## 📱 PWA
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Esta aplicación está configurada como una PWA. Puedes instalarla directamente desde tu navegador para una experiencia nativa.
 
-**Use GitHub Codespaces**
+## 📄 Documentación
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Para ver el contexto completo del proyecto, arquitectura y decisiones técnicas, consulta [CONTEXT.md](./CONTEXT.md).
