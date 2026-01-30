@@ -7,7 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   // GitHub Pages requires base path matching repo name
-  base: mode === "production" ? "/LiFELiNE/" : "/",
+  base: mode === "production" ? "/deadline-buddy/" : "/",
   server: {
     host: "::",
     port: 8080,
@@ -29,8 +29,8 @@ export default defineConfig(({ mode }) => ({
         background_color: "#0a0a0a",
         display: "standalone",
         orientation: "portrait",
-        scope: mode === "production" ? "/LiFELiNE/" : "/",
-        start_url: mode === "production" ? "/LiFELiNE/" : "/",
+        scope: mode === "production" ? "/deadline-buddy/" : "/",
+        start_url: mode === "production" ? "/deadline-buddy/" : "/",
         icons: [
           {
             src: "pwa-192x192.png",
