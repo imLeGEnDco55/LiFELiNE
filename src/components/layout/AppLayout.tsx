@@ -14,9 +14,11 @@ export function AppLayout() {
         <Outlet />
       </main>
       
-      {/* LiFELiNE Monitor - Fixed above bottom nav */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-2 max-w-lg mx-auto safe-area-bottom">
-        <HeartbeatMonitor />
+      {/* LiFELiNE Monitor - Fixed above bottom nav with visual frame */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 px-3 pb-2 max-w-lg mx-auto safe-area-bottom">
+        <div className="p-1 rounded-2xl bg-gradient-to-b from-[hsl(200,60%,30%)/20] to-transparent">
+          <HeartbeatMonitor />
+        </div>
       </div>
       
       <BottomNav />
