@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFeedbackSettings } from '@/hooks/useFeedbackSettings';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +24,7 @@ import {
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useLocalAuth();
+  const { user, signOut } = useAuth();
   const { settings, isSupported, toggleNotifications, toggle24h, toggle1h } = useNotifications();
   const { settings: feedbackSettings, toggleSound, toggleHaptic } = useFeedbackSettings();
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);

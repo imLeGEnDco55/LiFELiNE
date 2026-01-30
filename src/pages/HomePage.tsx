@@ -10,12 +10,12 @@ import { ResuscitationEffect } from '@/components/vitality/ResuscitationEffect';
 import { HomeFilters, FilterType } from '@/components/home/HomeFilters';
 import { DeadlinesList } from '@/components/home/DeadlinesList';
 import { SubtasksList } from '@/components/home/SubtasksList';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { useDeadlines } from '@/hooks/useDeadlines';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { user } = useLocalAuth();
+  const { user } = useAuth();
   const { deadlines, subtasksMap, categories, toggleSubtask } = useDeadlines();
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
