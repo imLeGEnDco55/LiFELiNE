@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion, Reorder } from 'framer-motion';
-import { Plus, Trash2, Palette, GripVertical } from 'lucide-react';
+import { motion, Reorder, AnimatePresence } from 'framer-motion';
+import { Plus, Trash2, Palette, GripVertical, ChevronRight, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDeadlines } from '@/hooks/useDeadlines';
@@ -24,6 +24,7 @@ export function CategoryManager() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [showForm, setShowForm] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleAddCategory = () => {
     const name = newCategoryName.trim();
@@ -52,115 +53,167 @@ export function CategoryManager() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Categorías</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowForm(!showForm)}
-          className="text-primary"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Nueva
-        </Button>
-      </div>
-
-      {/* Add Category Form */}
-      {showForm && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="space-y-3 p-4 bg-secondary/50 rounded-xl"
-        >
-          <Input
-            placeholder="Nombre de la categoría"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            maxLength={30}
-            className="bg-card"
-          />
-          
-          <div className="space-y-2">
-            <label className="text-xs text-muted-foreground flex items-center gap-1">
-              <Palette className="w-3 h-3" />
-              Color
-            </label>
-            <div className="flex gap-2 flex-wrap">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setSelectedColor(color)}
-                  className={cn(
-                    "w-8 h-8 rounded-full transition-all",
-                    selectedColor === color && "ring-2 ring-offset-2 ring-offset-background ring-white scale-110"
-                  )}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
+    <div className="space-y-0">
+      {/* Header - Collapsible trigger */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "w-full flex items-center gap-3 p-0 transition-colors",
+          "hover:opacity-80"
+        )}
+      >
+        <Tags className="w-5 h-5 text-primary" />
+        <div className="flex-1 text-left">
+          <h3 className="font-semibold">Categorías</h3>
+          <p className="text-xs text-muted-foreground">
+            {categories.length} categoría{categories.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Preview of category colors */}
+          <div className="flex -space-x-1">
+            {categories.slice(0, 4).map((cat) => (
+              <span
+                key={cat.id}
+                className="w-4 h-4 rounded-full border-2 border-card"
+                style={{ backgroundColor: cat.color }}
+              />
+            ))}
+            {categories.length > 4 && (
+              <span className="w-4 h-4 rounded-full bg-muted border-2 border-card flex items-center justify-center text-[8px] text-muted-foreground">
+                +{categories.length - 4}
+              </span>
+            )}
           </div>
+          <ChevronRight className={cn(
+            "w-5 h-5 text-muted-foreground transition-transform",
+            isExpanded && "rotate-90"
+          )} />
+        </div>
+      </button>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowForm(false)}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleAddCategory}
-              className="flex-1 gradient-primary"
-            >
-              Crear
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Categories List with Drag & Drop */}
-      {categories.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No hay categorías
-        </p>
-      ) : (
-        <Reorder.Group 
-          axis="y" 
-          values={categories} 
-          onReorder={(newOrder: Category[]) => reorderCategories(newOrder)}
-          className="space-y-2"
-        >
-          {categories.map((category) => (
-            <Reorder.Item
-              key={category.id}
-              value={category}
-              className="flex items-center justify-between p-3 bg-card rounded-lg border border-border cursor-grab active:cursor-grabbing"
-            >
-              <div className="flex items-center gap-3">
-                <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
-                <span 
-                  className="w-4 h-4 rounded-full shrink-0"
-                  style={{ backgroundColor: category.color }}
-                />
-                <span className="font-medium">{category.name}</span>
-              </div>
+      {/* Expandable content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-4 space-y-4">
+              {/* Add button */}
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                onClick={() => handleDeleteCategory(category.id, category.name)}
+                variant="outline"
+                size="sm"
+                onClick={() => setShowForm(!showForm)}
+                className="w-full border-dashed"
               >
-                <Trash2 className="w-4 h-4" />
+                <Plus className="w-4 h-4 mr-1" />
+                Nueva Categoría
               </Button>
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
-      )}
+
+              {/* Add Category Form */}
+              <AnimatePresence>
+                {showForm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-3 p-4 bg-secondary/50 rounded-xl overflow-hidden"
+                  >
+                    <Input
+                      placeholder="Nombre de la categoría"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      maxLength={30}
+                      className="bg-card"
+                    />
+                    
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Palette className="w-3 h-3" />
+                        Color
+                      </label>
+                      <div className="flex gap-2 flex-wrap">
+                        {PRESET_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setSelectedColor(color)}
+                            className={cn(
+                              "w-8 h-8 rounded-full transition-all",
+                              selectedColor === color && "ring-2 ring-offset-2 ring-offset-background ring-white scale-110"
+                            )}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowForm(false)}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleAddCategory}
+                        className="flex-1 gradient-primary"
+                      >
+                        Crear
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Categories List with Drag & Drop */}
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay categorías
+                </p>
+              ) : (
+                <Reorder.Group 
+                  axis="y" 
+                  values={categories} 
+                  onReorder={(newOrder: Category[]) => reorderCategories(newOrder)}
+                  className="space-y-2"
+                >
+                  {categories.map((category) => (
+                    <Reorder.Item
+                      key={category.id}
+                      value={category}
+                      className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg cursor-grab active:cursor-grabbing"
+                    >
+                      <div className="flex items-center gap-3">
+                        <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span 
+                          className="w-4 h-4 rounded-full shrink-0"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span className="font-medium text-sm">{category.name}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteCategory(category.id, category.name)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
