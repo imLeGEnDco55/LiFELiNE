@@ -4,7 +4,7 @@
 - **Nombre**: LiFELiNE
 - **Tipo**: Progressive Web App (PWA) de gestión de plazos y tareas.
 - **Objetivo**: Ayudar a los usuarios a gestionar sus fechas límite, tareas y enfoque de manera visual y eficiente.
-- **Estado Actual**: Desarrollo activo. Estructura base completa con autenticación local, vistas principales (Home, Calendario, Stats, Foco) y navegación funcional.
+- **Estado Actual**: Desarrollo activo. Arquitectura Híbrida (Local vs Cloud). Autenticación implementada con soporte dual.
 
 ## 🛠 Tech Stack
 - **Core**: React 18, TypeScript, Vite.
@@ -23,7 +23,8 @@
   - `ui`: Componentes base de shadcn/ui.
   - `layout`: Layout principal de la app (AppLayout).
   - `pwa`: Componentes específicos de PWA (Splash components).
-- `src/hooks`: Hooks personalizados (`useLocalAuth`, etc.).
+- `src/hooks`: Hooks personalizados (`useAuth`, `useDeadlines` [Pivot], `useLocalDeadlines`, `useCloudDeadlines`).
+- `src/providers`: `AuthProvider` (Manejo de estado global de auth y modo híbrido).
 - `src/integrations`: Integraciones externas (Supabase).
 - `src/lib`: Utilidades de librería (utils.ts).
 - `public`: Assets estáticos.

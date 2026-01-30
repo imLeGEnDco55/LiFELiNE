@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Heart, Mail, Lock, User, Eye, EyeOff, Cloud, CloudOff, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function AuthPage() {
   const navigate = useNavigate();
-  const { signIn, signUp } = useLocalAuth();
+  const { signIn, signUp, mode, switchMode } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,9 +19,17 @@ export function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Reset form when mode changes
+  const handleModeChange = (newMode: string) => {
+    switchMode(newMode as 'local' | 'cloud');
+    setEmail('');
+    setPassword('');
+    setDisplayName('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim() || !password.trim()) {
       toast.error('Completa todos los campos');
       return;
@@ -37,7 +46,7 @@ export function AuthPage() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        toast.success('¡Bienvenido de vuelta!');
+        toast.success(mode === 'local' ? '¡Bienvenido de vuelta (Local)!' : '¡Bienvenido de vuelta (Nube)!');
         navigate('/');
       } else {
         const { error } = await signUp(email, password, displayName);
@@ -60,13 +69,43 @@ export function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-10"
       >
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary glow-primary mb-4">
-          <Heart className="w-10 h-10 text-primary-foreground" />
+        <div className={cn(
+          "inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 transition-colors duration-500",
+          mode === 'local' ? "gradient-primary glow-primary" : "bg-blue-600 shadow-[0_0_40px_-5px_rgba(37,99,235,0.6)]"
+        )}>
+          {mode === 'local' ? (
+            <Heart className="w-10 h-10 text-primary-foreground" />
+          ) : (
+            <Database className="w-10 h-10 text-white" />
+          )}
         </div>
-        <h1 className="text-3xl font-bold text-gradient-primary">LiFELiNE</h1>
+        <h1 className={cn(
+          "text-3xl font-bold transition-colors duration-500",
+          mode === 'local' ? "text-gradient-primary" : "text-blue-500"
+        )}>LiFELiNE</h1>
         <p className="text-muted-foreground mt-2">
-          Tu productividad tiene pulso
+          {mode === 'local' ? "Tu productividad tiene pulso (Modo Local)" : "Tu productividad sincronizada (Modo Nube)"}
         </p>
+      </motion.div>
+
+      {/* Mode Toggle */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex justify-center mb-8"
+      >
+        <Tabs value={mode} onValueChange={handleModeChange} className="w-[200px]">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="local">
+              <CloudOff className="w-4 h-4 mr-2" />
+              Local
+            </TabsTrigger>
+            <TabsTrigger value="cloud">
+              <Cloud className="w-4 h-4 mr-2" />
+              Nube
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </motion.div>
 
       {/* Auth Form */}
@@ -94,7 +133,7 @@ export function AuthPage() {
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={mode === 'local' ? "Email (solo ID local)" : "Email"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="pl-11 h-12 bg-card border-border"
@@ -121,7 +160,10 @@ export function AuthPage() {
 
         <Button
           type="submit"
-          className="w-full h-12 text-lg font-semibold gradient-primary glow-primary"
+          className={cn(
+            "w-full h-12 text-lg font-semibold transition-all duration-500",
+            mode === 'local' ? "gradient-primary glow-primary" : "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
+          )}
           disabled={isLoading}
         >
           {isLoading ? 'Cargando...' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
@@ -141,9 +183,9 @@ export function AuthPage() {
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
           {isLogin ? (
-            <>¿No tienes cuenta? <span className="text-primary font-medium">Regístrate</span></>
+            <>¿No tienes cuenta? <span className={cn("font-medium", mode === 'local' ? "text-primary" : "text-blue-500")}>Regístrate</span></>
           ) : (
-            <>¿Ya tienes cuenta? <span className="text-primary font-medium">Inicia Sesión</span></>
+            <>¿Ya tienes cuenta? <span className={cn("font-medium", mode === 'local' ? "text-primary" : "text-blue-500")}>Inicia Sesión</span></>
           )}
         </button>
       </motion.div>
