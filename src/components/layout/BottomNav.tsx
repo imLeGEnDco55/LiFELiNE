@@ -6,7 +6,7 @@ import { PomodoroDrawer } from '@/components/focus/PomodoroDrawer';
 
 const navItems = [
   { icon: Home, label: 'Inicio', path: '/' },
-  { icon: Calendar, label: 'Calendario', path: '/calendar' },
+  { icon: Calendar, label: 'Historial', path: '/calendar' },
   { type: 'pomodoro' as const }, // Center slot for Pomodoro
   { icon: BarChart3, label: 'Stats', path: '/stats' },
   { icon: Settings, label: 'Ajustes', path: '/settings' },
