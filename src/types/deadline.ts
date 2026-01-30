@@ -17,6 +17,7 @@ export interface Deadline {
   deadline_at: string;
   priority: Priority;
   category_id: string | null;
+  parent_id: string | null; // For nested deadlines
   created_at: string;
   updated_at: string;
   completed_at: string | null;

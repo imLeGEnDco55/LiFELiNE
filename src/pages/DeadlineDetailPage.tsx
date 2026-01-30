@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, GripVertical, Skull } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, Skull, ChevronUp, Lock } from 'lucide-react';
 import { format, parseISO, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { AutopsyModal } from '@/components/vitality/AutopsyModal';
+import { SubtaskItem } from '@/components/deadline/SubtaskItem';
+import { ChildDeadlinesList } from '@/components/deadline/ChildDeadlinesList';
 import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -29,7 +30,11 @@ export function DeadlineDetailPage() {
     reorderSubtasks,
     completeDeadline: completeDeadlineFn,
     deleteDeadline: deleteDeadlineFn,
-    categories 
+    categories,
+    getChildDeadlines,
+    getParentDeadline,
+    canCompleteDeadline,
+    convertSubtaskToDeadline,
   } = useDeadlines();
   const { completeFeedback, tickFeedback } = useFeedback();
   const [newSubtask, setNewSubtask] = useState('');
@@ -37,6 +42,10 @@ export function DeadlineDetailPage() {
 
   const deadline = deadlines.find(d => d.id === id);
   const subtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
+  const childDeadlines = id ? getChildDeadlines(id) : [];
+  const parentDeadline = id ? getParentDeadline(id) : null;
+  const canComplete = id ? canCompleteDeadline(id) : true;
+  
   const category = deadline?.category_id 
     ? categories.find(c => c.id === deadline.category_id) 
     : undefined;
@@ -50,8 +59,12 @@ export function DeadlineDetailPage() {
   const isOverdue = deadline ? isBefore(parseISO(deadline.deadline_at), new Date()) && !isCompleted : false;
   const status = getDeadlineStatus(timeRemaining, isCompleted);
   const completedCount = subtasks.filter(s => s.completed).length;
-  const progressPercentage = subtasks.length > 0 
-    ? Math.round((completedCount / subtasks.length) * 100)
+  const completedChildrenCount = childDeadlines.filter(c => c.completed_at).length;
+  const totalProgress = subtasks.length + childDeadlines.length;
+  const completedProgress = completedCount + completedChildrenCount;
+  
+  const progressPercentage = totalProgress > 0 
+    ? Math.round((completedProgress / totalProgress) * 100)
     : Math.round(timeRemaining.percentage);
 
   const handleAddSubtask = (title: string) => {
@@ -68,9 +81,19 @@ export function DeadlineDetailPage() {
 
   const handleCompleteDeadline = () => {
     if (!id) return;
-    completeDeadlineFn(id);
-    completeFeedback();
-    toast.success('¡Deadline completado! 🎉');
+    
+    if (!canComplete) {
+      toast.error('Completa todos los deadlines anidados primero');
+      return;
+    }
+    
+    const result = completeDeadlineFn(id);
+    if (result.success) {
+      completeFeedback();
+      toast.success('¡Deadline completado! 🎉');
+    } else {
+      toast.error('Completa todos los deadlines anidados primero');
+    }
   };
 
   const handleToggleSubtask = (subtaskId: string) => {
@@ -83,6 +106,13 @@ export function DeadlineDetailPage() {
     deleteDeadlineFn(id);
     toast.success('Deadline eliminado');
     navigate('/');
+  };
+
+  const handleConvertSubtask = (subtaskId: string) => {
+    const newDeadline = convertSubtaskToDeadline(subtaskId);
+    if (newDeadline) {
+      toast.success('¡Subtarea convertida a deadline!');
+    }
   };
 
   const variant = status === 'immediate' || status === 'overdue' ? 'urgent' 
@@ -101,7 +131,7 @@ export function DeadlineDetailPage() {
   const nextSubtask = subtasks.find(s => !s.completed);
 
   return (
-    <div className="px-4 py-6 min-h-screen">
+    <div className="px-4 py-6 min-h-screen pb-24">
       {/* Header */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
@@ -133,6 +163,20 @@ export function DeadlineDetailPage() {
           </Button>
         </div>
       </motion.header>
+
+      {/* Parent Deadline Link */}
+      {parentDeadline && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={() => navigate(`/deadline/${parentDeadline.id}`)}
+          className="w-full mb-4 p-3 rounded-lg bg-secondary/50 border border-border flex items-center gap-2 text-sm hover:bg-secondary transition-colors"
+        >
+          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Parte de:</span>
+          <span className="font-medium truncate">{parentDeadline.title}</span>
+        </motion.button>
+      )}
 
       {/* Overdue Banner */}
       {isOverdue && (
@@ -205,12 +249,18 @@ export function DeadlineDetailPage() {
         <div className="flex gap-6 mt-4">
           <div className="text-center">
             <p className="text-2xl font-bold text-primary">{progressPercentage}%</p>
-            <p className="text-xs text-muted-foreground">Transcurrido</p>
+            <p className="text-xs text-muted-foreground">Progreso</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-foreground">{completedCount}/{subtasks.length}</p>
             <p className="text-xs text-muted-foreground">Subtareas</p>
           </div>
+          {childDeadlines.length > 0 && (
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{completedChildrenCount}/{childDeadlines.length}</p>
+              <p className="text-xs text-muted-foreground">Anidados</p>
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -234,6 +284,22 @@ export function DeadlineDetailPage() {
         </motion.div>
       )}
 
+      {/* Child Deadlines */}
+      {childDeadlines.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="mb-6"
+        >
+          <ChildDeadlinesList 
+            children={childDeadlines}
+            categories={categories}
+            parentDeadlineAt={deadline.deadline_at}
+          />
+        </motion.div>
+      )}
+
       {/* Subtasks Roadmap */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -241,7 +307,12 @@ export function DeadlineDetailPage() {
         transition={{ delay: 0.2 }}
         className="space-y-4"
       >
-        <h2 className="font-semibold text-lg">Roadmap de Subtareas</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-lg">Subtareas</h2>
+          <p className="text-xs text-muted-foreground">
+            Mantén presionado para convertir a deadline
+          </p>
+        </div>
 
         {/* Add Subtask */}
         <div className="flex gap-2">
@@ -277,38 +348,17 @@ export function DeadlineDetailPage() {
           className="space-y-2"
         >
           {subtasks.map((subtask) => (
-            <Reorder.Item
+            <SubtaskItem
               key={subtask.id}
-              value={subtask}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing",
-                subtask.completed && "opacity-60"
-              )}
-            >
-              <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
-              <Checkbox
-                checked={subtask.completed}
-                onCheckedChange={() => handleToggleSubtask(subtask.id)}
-              />
-              <span className={cn(
-                "flex-1",
-                subtask.completed && "line-through text-muted-foreground"
-              )}>
-                {subtask.title}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                onClick={() => deleteSubtask(subtask.id)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </Reorder.Item>
+              subtask={subtask}
+              onToggle={() => handleToggleSubtask(subtask.id)}
+              onDelete={() => deleteSubtask(subtask.id)}
+              onConvertToDeadline={() => handleConvertSubtask(subtask.id)}
+            />
           ))}
         </Reorder.Group>
 
-        {subtasks.length === 0 && (
+        {subtasks.length === 0 && childDeadlines.length === 0 && (
           <p className="text-center text-muted-foreground py-6">
             Agrega subtareas para dividir tu deadline
           </p>
@@ -325,11 +375,26 @@ export function DeadlineDetailPage() {
         >
           <Button
             variant="outline"
-            className="w-full h-12 border-success text-success hover:bg-success/10"
+            className={cn(
+              "w-full h-12",
+              canComplete 
+                ? "border-success text-success hover:bg-success/10" 
+                : "border-muted text-muted-foreground cursor-not-allowed"
+            )}
             onClick={handleCompleteDeadline}
+            disabled={!canComplete}
           >
-            <CheckCircle2 className="w-5 h-5 mr-2" />
-            Marcar como Completado
+            {canComplete ? (
+              <>
+                <CheckCircle2 className="w-5 h-5 mr-2" />
+                Marcar como Completado
+              </>
+            ) : (
+              <>
+                <Lock className="w-5 h-5 mr-2" />
+                Completa los deadlines anidados primero
+              </>
+            )}
           </Button>
         </motion.div>
       )}

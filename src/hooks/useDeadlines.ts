@@ -17,6 +17,7 @@ export function useDeadlines() {
       ...data,
       id: crypto.randomUUID(),
       user_id: MOCK_USER_ID,
+      parent_id: data.parent_id ?? null,
       created_at: now,
       updated_at: now,
       completed_at: null,
@@ -37,10 +38,19 @@ export function useDeadlines() {
   }, [setDeadlines, setSubtasks]);
 
   const completeDeadline = useCallback((id: string) => {
+    // Check if all children are completed (blocking logic)
+    const children = deadlines.filter(d => d.parent_id === id);
+    const allChildrenCompleted = children.every(c => c.completed_at !== null);
+    
+    if (children.length > 0 && !allChildrenCompleted) {
+      return { success: false, reason: 'children_incomplete' };
+    }
+    
     setDeadlines(prev => prev.map(d => 
       d.id === id ? { ...d, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() } : d
     ));
-  }, [setDeadlines]);
+    return { success: true };
+  }, [setDeadlines, deadlines]);
 
   const createSubtask = useCallback((data: Omit<Subtask, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     const now = new Date().toISOString();
@@ -146,6 +156,57 @@ export function useDeadlines() {
     });
     return map;
   }, [subtasks]);
+
+  // Nested deadlines helpers
+  const getChildDeadlines = useCallback((parentId: string) => {
+    return deadlines.filter(d => d.parent_id === parentId);
+  }, [deadlines]);
+
+  const getParentDeadline = useCallback((childId: string) => {
+    const child = deadlines.find(d => d.id === childId);
+    if (!child?.parent_id) return null;
+    return deadlines.find(d => d.id === child.parent_id) || null;
+  }, [deadlines]);
+
+  const getRootDeadlines = useCallback(() => {
+    return deadlines.filter(d => d.parent_id === null);
+  }, [deadlines]);
+
+  const canCompleteDeadline = useCallback((id: string) => {
+    const children = deadlines.filter(d => d.parent_id === id);
+    if (children.length === 0) return true;
+    return children.every(c => c.completed_at !== null);
+  }, [deadlines]);
+
+  // Convert subtask to child deadline
+  const convertSubtaskToDeadline = useCallback((subtaskId: string) => {
+    const subtask = subtasks.find(s => s.id === subtaskId);
+    if (!subtask) return null;
+
+    const parentDeadline = deadlines.find(d => d.id === subtask.deadline_id);
+    if (!parentDeadline) return null;
+
+    // Create new deadline with parent reference
+    const now = new Date().toISOString();
+    const newDeadline: Deadline = {
+      id: crypto.randomUUID(),
+      user_id: MOCK_USER_ID,
+      title: subtask.title,
+      description: null,
+      deadline_at: subtask.due_at || parentDeadline.deadline_at, // Use subtask due_at or parent deadline
+      priority: parentDeadline.priority,
+      category_id: parentDeadline.category_id,
+      parent_id: parentDeadline.id,
+      created_at: now,
+      updated_at: now,
+      completed_at: subtask.completed ? now : null,
+    };
+
+    setDeadlines(prev => [...prev, newDeadline]);
+    setSubtasks(prev => prev.filter(s => s.id !== subtaskId));
+
+    return newDeadline;
+  }, [subtasks, deadlines, setDeadlines, setSubtasks]);
 
   // Weekly stats
   const weeklyStats = useMemo(() => {
@@ -297,5 +358,11 @@ export function useDeadlines() {
     getSubtasksForDeadline,
     createFocusSession,
     completeFocusSession,
+    // Nested deadlines
+    getChildDeadlines,
+    getParentDeadline,
+    getRootDeadlines,
+    canCompleteDeadline,
+    convertSubtaskToDeadline,
   };
 }
