@@ -82,7 +82,7 @@ const App = () => {
             {showSplash && <SplashScreen />}
           </AnimatePresence>
 
-          <BrowserRouter>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
               {/* Auth */}
               <Route path="/auth" element={
