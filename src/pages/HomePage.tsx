@@ -3,37 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Filter, FolderOpen } from 'lucide-react';
+import { Plus, ListTodo, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DeadlineCard } from '@/components/deadline/DeadlineCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResuscitationEffect } from '@/components/vitality/ResuscitationEffect';
+import { HomeFilters, FilterType } from '@/components/home/HomeFilters';
+import { DeadlinesList } from '@/components/home/DeadlinesList';
+import { SubtasksList } from '@/components/home/SubtasksList';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
 import { useDeadlines } from '@/hooks/useDeadlines';
-import { cn } from '@/lib/utils';
-
-type FilterType = 'all' | 'urgent' | 'week' | 'later';
-
-const filterOptions: { value: FilterType; label: string }[] = [
-  { value: 'all', label: 'Todo' },
-  { value: 'urgent', label: 'Urgente' },
-  { value: 'week', label: 'Esta Semana' },
-  { value: 'later', label: 'Más Tarde' },
-];
 
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useLocalAuth();
-  const { deadlines, subtasksMap, categories } = useDeadlines();
+  const { deadlines, subtasksMap, categories, toggleSubtask } = useDeadlines();
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
+  const [activeTab, setActiveTab] = useState<'deadlines' | 'subtasks'>('deadlines');
 
-  const filteredDeadlines = deadlines.filter(deadline => {
-    // Category filter
+  // Filter logic for deadlines
+  const filteredDeadlines = deadlines.filter((deadline) => {
     if (selectedCategory && deadline.category_id !== selectedCategory) return false;
-    
     if (deadline.completed_at) return filter === 'all';
-    
+
     const now = new Date();
     const deadlineDate = new Date(deadline.deadline_at);
     const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -51,17 +43,26 @@ export function HomePage() {
     }
   });
 
+  // Filter subtasks based on parent deadline filters
+  const filteredSubtasksMap: Record<string, typeof subtasksMap[string]> = {};
+  filteredDeadlines.forEach((deadline) => {
+    if (subtasksMap[deadline.id]) {
+      filteredSubtasksMap[deadline.id] = subtasksMap[deadline.id];
+    }
+  });
+
   const today = new Date();
   const greeting = getGreeting();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Usuario';
 
+  const hasFilters = filter !== 'all' || selectedCategory !== null;
+
   return (
     <div className="px-4 py-6 pb-24">
-      {/* Resuscitation Effect */}
       <ResuscitationEffect />
 
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-4"
@@ -83,121 +84,61 @@ export function HomePage() {
         </div>
       </motion.header>
 
-
-
-      {/* Category Pills */}
-      <motion.div 
+      {/* Compact Filters */}
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2"
       >
-        <Button
-          variant={selectedCategory === null ? "default" : "outline"}
-          size="sm"
-          className={cn(
-            "rounded-full shrink-0 gap-1.5",
-            selectedCategory === null && "gradient-primary"
-          )}
-          onClick={() => setSelectedCategory(null)}
-        >
-          <FolderOpen className="w-3.5 h-3.5" />
-          Todas
-        </Button>
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? "default" : "outline"}
-            size="sm"
-            className="rounded-full shrink-0 gap-1.5"
-            style={{
-              backgroundColor: selectedCategory === category.id ? category.color : undefined,
-              borderColor: category.color,
-              color: selectedCategory === category.id ? 'white' : category.color,
-            }}
-            onClick={() => setSelectedCategory(category.id)}
-          >
-            <span 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: selectedCategory === category.id ? 'white' : category.color }}
-            />
-            {category.name}
-          </Button>
-        ))}
+        <HomeFilters
+          filter={filter}
+          setFilter={setFilter}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          categories={categories}
+        />
       </motion.div>
 
-      {/* Time Filters */}
-      <motion.div 
+      {/* Dual Tab System */}
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
-        className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide pb-2"
       >
-        {filterOptions.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={filter === value ? "default" : "secondary"}
-            size="sm"
-            className={cn(
-              "rounded-full shrink-0",
-              filter === value && "gradient-primary"
-            )}
-            onClick={() => setFilter(value)}
-          >
-            {label}
-          </Button>
-        ))}
-      </motion.div>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'deadlines' | 'subtasks')}>
+          <TabsList className="w-full grid grid-cols-2 mb-4">
+            <TabsTrigger value="deadlines" className="gap-2">
+              <Target className="w-4 h-4" />
+              Deadlines
+            </TabsTrigger>
+            <TabsTrigger value="subtasks" className="gap-2">
+              <ListTodo className="w-4 h-4" />
+              Subtareas
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Deadlines List */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="space-y-3"
-      >
-        {filteredDeadlines.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-              <Filter className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-1">
-              {filter === 'all' && !selectedCategory ? 'Sin deadlines' : 'Sin resultados'}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              {filter === 'all' && !selectedCategory
-                ? 'Crea tu primer deadline para empezar'
-                : 'No hay deadlines en esta categoría'}
-            </p>
-            {filter === 'all' && !selectedCategory && (
-              <Button 
-                className="mt-4 gradient-primary"
-                onClick={() => navigate('/create')}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nuevo Deadline
-              </Button>
-            )}
-          </div>
-        ) : (
-          filteredDeadlines.map((deadline, index) => (
-            <motion.div
-              key={deadline.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-            >
-              <DeadlineCard
-                deadline={deadline}
-                subtasks={subtasksMap[deadline.id]}
-                category={categories.find(c => c.id === deadline.category_id)}
-                onClick={() => navigate(`/deadline/${deadline.id}`)}
-              />
-            </motion.div>
-          ))
-        )}
-      </motion.div>
+          <TabsContent value="deadlines" className="mt-0">
+            <DeadlinesList
+              deadlines={filteredDeadlines}
+              subtasksMap={subtasksMap}
+              categories={categories}
+              hasFilters={hasFilters}
+              onDeadlineClick={(id) => navigate(`/deadline/${id}`)}
+              onCreateClick={() => navigate('/create')}
+            />
+          </TabsContent>
 
+          <TabsContent value="subtasks" className="mt-0">
+            <SubtasksList
+              deadlines={filteredDeadlines}
+              subtasksMap={filteredSubtasksMap}
+              categories={categories}
+              onToggleSubtask={toggleSubtask}
+              onDeadlineClick={(id) => navigate(`/deadline/${id}`)}
+            />
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </div>
   );
 }
