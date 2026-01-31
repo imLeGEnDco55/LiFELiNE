@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate, FlaskConical, Trash2 } from 'lucide-react';
+import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate, Cloud, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { useLocalAuth } from '@/hooks/useLocalAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFeedbackSettings } from '@/hooks/useFeedbackSettings';
+import { useSync } from '@/hooks/useSync';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { CategoryManager } from '@/components/settings/CategoryManager';
-import { loadDummyData, clearAllData } from '@/utils/dummyData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +25,10 @@ import {
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useLocalAuth();
+  const { user, signOut, mode } = useAuth();
   const { settings, isSupported, toggleNotifications, toggle24h, toggle1h } = useNotifications();
   const { settings: feedbackSettings, toggleSound, toggleHaptic } = useFeedbackSettings();
+  const { syncLocalToCloud, isSyncing, lastSync } = useSync();
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   const handleSignOut = async () => {
@@ -94,6 +95,35 @@ export function SettingsPage() {
           label="Editar Perfil" 
           onClick={() => toast.info('Próximamente')} 
         />
+
+        {/* Sync Section (Only for Cloud Mode) */}
+        {mode === 'cloud' && (
+          <div className="p-4 bg-card rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Cloud className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Sincronización</p>
+                  <p className="text-xs text-muted-foreground">
+                    {lastSync
+                      ? `Última: ${new Date(lastSync).toLocaleString()}`
+                      : 'Sube tus datos locales a la nube'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={syncLocalToCloud}
+                disabled={isSyncing}
+                className="gap-2"
+              >
+                <RotateCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+                {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+              </Button>
+            </div>
+          </div>
+        )}
         
         {/* Notifications Section */}
         <div className="space-y-0">
@@ -246,68 +276,6 @@ export function SettingsPage() {
         />
       </motion.div>
 
-      {/* Developer/Testing Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
-        className="mt-8 space-y-2"
-      >
-        <p className="text-xs text-muted-foreground uppercase tracking-wider px-1 mb-2">Desarrollo</p>
-        
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-3 h-auto py-3"
-          onClick={() => {
-            loadDummyData();
-            toast.success('Datos de prueba cargados - recarga la página');
-            setTimeout(() => window.location.reload(), 1000);
-          }}
-        >
-          <FlaskConical className="w-5 h-5 text-primary" />
-          <div className="text-left">
-            <p className="font-medium">Cargar datos de prueba</p>
-            <p className="text-xs text-muted-foreground">7 días de deadlines, subtareas y sesiones</p>
-          </div>
-        </Button>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-3 h-auto py-3 border-destructive/50 text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="w-5 h-5" />
-              <div className="text-left">
-                <p className="font-medium">Borrar todos los datos</p>
-                <p className="text-xs text-destructive/70">Elimina deadlines, subtareas y sesiones</p>
-              </div>
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Borrar todos los datos?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción eliminará todos tus deadlines, subtareas, categorías y sesiones de enfoque. Esta acción no se puede deshacer.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => {
-                  clearAllData();
-                  toast.success('Todos los datos han sido eliminados');
-                  setTimeout(() => window.location.reload(), 1000);
-                }}
-              >
-                Sí, borrar todo
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </motion.div>
-
       {/* Sign Out */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -327,7 +295,7 @@ export function SettingsPage() {
 
       {/* Version */}
       <p className="text-center text-muted-foreground text-xs mt-8">
-        Deadliner v1.0.0 (Local Mode)
+        Deadliner v1.0.0 ({mode === 'local' ? 'Local Mode' : 'Cloud Mode'})
       </p>
     </div>
   );

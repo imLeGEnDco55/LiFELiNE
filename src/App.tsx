@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/pwa/SplashScreen";
+import { useSync } from "@/hooks/useSync";
 
 // Pages
 import { AuthPage } from "@/pages/AuthPage";
@@ -24,7 +24,19 @@ import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, mode } = useAuth();
+  const { syncLocalToCloud } = useSync();
+
+  // Auto-sync once on login to cloud mode
+  useEffect(() => {
+    if (user && mode === 'cloud') {
+      const hasSynced = sessionStorage.getItem('lifeline-initial-sync');
+      if (!hasSynced) {
+        syncLocalToCloud();
+        sessionStorage.setItem('lifeline-initial-sync', 'true');
+      }
+    }
+  }, [user, mode]);
 
   if (loading) {
     return (
@@ -74,7 +86,6 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
         <Sonner />
 
         <AuthProvider>

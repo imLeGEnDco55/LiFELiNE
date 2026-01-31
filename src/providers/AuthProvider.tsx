@@ -54,6 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (session) {
                 setCloudSession(session);
                 setCloudUser(session.user);
+                // Auto-switch to cloud if we have a session
+                setMode("cloud");
+                localStorage.setItem("lifeline-auth-mode", "cloud");
             }
             setCloudLoading(false);
         });
@@ -65,6 +68,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setCloudSession(session);
                 setCloudUser(session?.user ?? null);
                 setCloudLoading(false);
+
+                if (session) {
+                    setMode("cloud");
+                    localStorage.setItem("lifeline-auth-mode", "cloud");
+                }
             }
         );
 
