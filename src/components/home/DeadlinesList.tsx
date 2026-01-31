@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,16 @@ export function DeadlinesList({
   onDeadlineClick,
   onCreateClick,
 }: DeadlinesListProps) {
-  // Helper to count children for a deadline
-  const getChildrenCount = (deadlineId: string) => {
-    return allDeadlines.filter(d => d.parent_id === deadlineId).length;
-  };
+  // Pre-calculate children counts to avoid O(N*M) complexity
+  const childrenCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allDeadlines.forEach((d) => {
+      if (d.parent_id) {
+        counts[d.parent_id] = (counts[d.parent_id] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [allDeadlines]);
 
   if (deadlines.length === 0) {
     return (
@@ -65,7 +72,7 @@ export function DeadlinesList({
             deadline={deadline}
             subtasks={subtasksMap[deadline.id]}
             category={categories.find((c) => c.id === deadline.category_id)}
-            childrenCount={getChildrenCount(deadline.id)}
+            childrenCount={childrenCounts[deadline.id] || 0}
             onClick={() => onDeadlineClick(deadline.id)}
           />
         </motion.div>
