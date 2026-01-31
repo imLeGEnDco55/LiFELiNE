@@ -44,21 +44,22 @@ export function DailyActivityChart() {
       <h3 className="text-sm font-medium text-muted-foreground">
         Actividad Diaria
       </h3>
-      
+
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} barGap={2}>
-            <XAxis 
-              dataKey="day" 
+            <XAxis
+              dataKey="day"
               axisLine={false}
               tickLine={false}
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
             />
-            <YAxis 
-              hide 
+            <YAxis
+              hide
               domain={[0, maxValue + 1]}
             />
             <Tooltip
+              cursor={false}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 const data = payload[0].payload;
@@ -72,15 +73,15 @@ export function DailyActivityChart() {
                 );
               }}
             />
-            <Bar 
-              dataKey="deadlines" 
-              fill="hsl(var(--success))" 
+            <Bar
+              dataKey="deadlines"
+              fill="hsl(var(--success))"
               radius={[4, 4, 0, 0]}
               maxBarSize={24}
             />
-            <Bar 
-              dataKey="focus" 
-              fill="hsl(var(--primary))" 
+            <Bar
+              dataKey="focus"
+              fill="hsl(var(--primary))"
               radius={[4, 4, 0, 0]}
               maxBarSize={24}
             />

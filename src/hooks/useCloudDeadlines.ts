@@ -8,8 +8,8 @@ export function useCloudDeadlines() {
     const { user } = useAuth();
     const [deadlines, setDeadlines] = useState<Deadline[]>([]);
     const [subtasks, setSubtasks] = useState<Subtask[]>([]);
-    // Use local categories as fallback for now or fetch from DB if we migrated
-    const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+    // Start empty to force usage of DB categories (with valid UUIDs)
+    const [categories, setCategories] = useState<Category[]>([]);
     const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -22,12 +22,34 @@ export function useCloudDeadlines() {
 
             const { data: deadlinesData } = await supabase.from('deadlines').select('*');
             const { data: subtasksData } = await supabase.from('subtasks').select('*');
-            const { data: categoriesData } = await supabase.from('categories').select('*');
+            let { data: categoriesData } = await supabase.from('categories').select('*');
             const { data: sessionsData } = await supabase.from('focus_sessions').select('*');
+
+            // Seed categories if empty
+            if (!categoriesData || categoriesData.length === 0) {
+                console.log('[Cloud] Seeding default categories...');
+                const categoriesToInsert = DEFAULT_CATEGORIES.map(c => ({
+                    user_id: user.id,
+                    name: c.name,
+                    color: c.color,
+                    icon: c.icon
+                }));
+
+                const { data: newCategories, error } = await supabase
+                    .from('categories')
+                    .insert(categoriesToInsert)
+                    .select();
+
+                if (error) {
+                    console.error('[Cloud] Error seeding categories:', error);
+                } else {
+                    categoriesData = newCategories;
+                }
+            }
 
             if (deadlinesData) setDeadlines(deadlinesData as any);
             if (subtasksData) setSubtasks(subtasksData as any);
-            if (categoriesData && categoriesData.length > 0) setCategories(categoriesData as any);
+            if (categoriesData) setCategories(categoriesData as any);
             if (sessionsData) setFocusSessions(sessionsData as any);
 
             setLoading(false);
