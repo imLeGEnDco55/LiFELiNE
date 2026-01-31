@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Reorder } from 'framer-motion';
 import { GripVertical, Trash2, Target } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,7 +24,13 @@ interface SubtaskItemProps {
   onConvertToDeadline: () => void;
 }
 
-export function SubtaskItem({ subtask, onToggle, onDelete, onConvertToDeadline }: SubtaskItemProps) {
+// Memoized to prevent re-renders during drag
+export const SubtaskItem = memo(function SubtaskItem({
+  subtask,
+  onToggle,
+  onDelete,
+  onConvertToDeadline
+}: SubtaskItemProps) {
   const [showConvertDialog, setShowConvertDialog] = useState(false);
 
   const { isPressed, handlers } = useLongPress({
@@ -36,12 +42,16 @@ export function SubtaskItem({ subtask, onToggle, onDelete, onConvertToDeadline }
     <>
       <Reorder.Item
         value={subtask}
+        layoutId={subtask.id}
         className={cn(
-          "flex items-center gap-3 p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing transition-all",
+          "flex items-center gap-3 p-3 rounded-lg bg-card border border-border cursor-grab active:cursor-grabbing transition-colors",
           subtask.completed && "opacity-60",
           isPressed && "scale-[0.98] bg-accent/50 border-primary/50"
         )}
         {...handlers}
+        // Reduce layout animation overhead
+        layout="position"
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
       >
         <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
         <Checkbox
@@ -76,13 +86,13 @@ export function SubtaskItem({ subtask, onToggle, onDelete, onConvertToDeadline }
               Convertir a Deadline
             </AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Convertir "{subtask.title}" en un deadline anidado? 
+              ¿Convertir "{subtask.title}" en un deadline anidado?
               Esto te permitirá agregar sus propias subtareas y mantenerlo como parte del deadline padre.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={onConvertToDeadline}
               className="gradient-primary"
             >
@@ -93,4 +103,4 @@ export function SubtaskItem({ subtask, onToggle, onDelete, onConvertToDeadline }
       </AlertDialog>
     </>
   );
-}
+});

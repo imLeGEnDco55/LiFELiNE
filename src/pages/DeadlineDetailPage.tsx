@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
 import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, Skull, ChevronUp, Lock, Pencil } from 'lucide-react';
@@ -22,11 +22,11 @@ import { cn } from '@/lib/utils';
 export function DeadlineDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { 
-    deadlines, 
-    getSubtasksForDeadline, 
-    createSubtask, 
-    toggleSubtask, 
+  const {
+    deadlines,
+    getSubtasksForDeadline,
+    createSubtask,
+    toggleSubtask,
     deleteSubtask,
     reorderSubtasks,
     completeDeadline: completeDeadlineFn,
@@ -43,14 +43,42 @@ export function DeadlineDetailPage() {
   const [autopsyOpen, setAutopsyOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
+  // Get source subtasks
+  const sourceSubtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
+
+  // Local state for drag operations (optimistic UI)
+  const [localSubtasks, setLocalSubtasks] = useState<Subtask[]>(sourceSubtasks);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync local state when source changes (but not during drag)
+  useEffect(() => {
+    setLocalSubtasks(sourceSubtasks);
+  }, [JSON.stringify(sourceSubtasks.map(s => s.id + s.order_index))]);
+
+  // Debounced reorder - only persist after drag stops
+  const handleReorder = useCallback((newOrder: Subtask[]) => {
+    // Update local state immediately (smooth drag)
+    setLocalSubtasks(newOrder);
+
+    // Debounce DB persistence
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      if (id) {
+        reorderSubtasks(id, newOrder.map(s => s.id));
+      }
+    }, 300);
+  }, [id, reorderSubtasks]);
+
   const deadline = deadlines.find(d => d.id === id);
-  const subtasks = id ? getSubtasksForDeadline(id).sort((a, b) => a.order_index - b.order_index) : [];
+  const subtasks = localSubtasks; // Use local state for rendering
   const childDeadlines = id ? getChildDeadlines(id) : [];
   const parentDeadline = id ? getParentDeadline(id) : null;
   const canComplete = id ? canCompleteDeadline(id) : true;
-  
-  const category = deadline?.category_id 
-    ? categories.find(c => c.id === deadline.category_id) 
+
+  const category = deadline?.category_id
+    ? categories.find(c => c.id === deadline.category_id)
     : undefined;
 
   const timeRemaining = useCountdown(
@@ -65,8 +93,8 @@ export function DeadlineDetailPage() {
   const completedChildrenCount = childDeadlines.filter(c => c.completed_at).length;
   const totalProgress = subtasks.length + childDeadlines.length;
   const completedProgress = completedCount + completedChildrenCount;
-  
-  const progressPercentage = totalProgress > 0 
+
+  const progressPercentage = totalProgress > 0
     ? Math.round((completedProgress / totalProgress) * 100)
     : Math.round(timeRemaining.percentage);
 
@@ -81,15 +109,15 @@ export function DeadlineDetailPage() {
     setNewSubtask('');
   };
 
-  const handleCompleteDeadline = () => {
+  const handleCompleteDeadline = async () => {
     if (!id) return;
-    
+
     if (!canComplete) {
       toast.error('Completa todos los deadlines anidados primero');
       return;
     }
-    
-    const result = completeDeadlineFn(id);
+
+    const result = await completeDeadlineFn(id);
     if (result.success) {
       completeFeedback();
       toast.success('¡Deadline completado! 🎉');
@@ -117,10 +145,10 @@ export function DeadlineDetailPage() {
     }
   };
 
-  const variant = status === 'immediate' || status === 'overdue' ? 'urgent' 
+  const variant = status === 'immediate' || status === 'overdue' ? 'urgent'
     : status === 'warning' ? 'warning'
-    : status === 'completed' ? 'success' 
-    : 'primary';
+      : status === 'completed' ? 'success'
+        : 'primary';
 
   if (!deadline) {
     return (
@@ -135,7 +163,7 @@ export function DeadlineDetailPage() {
   return (
     <div className="px-4 py-6 min-h-screen pb-24">
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between mb-6"
@@ -145,8 +173,8 @@ export function DeadlineDetailPage() {
         </Button>
         <div className="flex items-center gap-2">
           {isOverdue && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="border-urgent text-urgent hover:bg-urgent/10"
               onClick={() => setAutopsyOpen(true)}
@@ -155,16 +183,16 @@ export function DeadlineDetailPage() {
               Ver Autopsia
             </Button>
           )}
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             onClick={() => setEditOpen(true)}
           >
             <Pencil className="w-5 h-5" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-destructive"
             onClick={handleDeleteDeadline}
           >
@@ -212,32 +240,32 @@ export function DeadlineDetailPage() {
       )}
 
       {/* Main Progress Circle */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center mb-8"
       >
-        <CircularProgress 
-          percentage={progressPercentage} 
-          size={200} 
+        <CircularProgress
+          percentage={progressPercentage}
+          size={200}
           strokeWidth={14}
           variant={variant}
         >
           <div className="text-center">
-            <CountdownDisplay 
-              timeRemaining={timeRemaining} 
-              size="sm" 
+            <CountdownDisplay
+              timeRemaining={timeRemaining}
+              size="sm"
               showSeconds={timeRemaining.days === 0}
             />
           </div>
         </CircularProgress>
 
         <h1 className="text-2xl font-bold mt-4 text-center">{deadline.title}</h1>
-        
+
         {category && (
-          <span 
+          <span
             className="mt-2 px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{ 
+            style={{
               backgroundColor: `${category.color}20`,
               color: category.color,
             }}
@@ -245,7 +273,7 @@ export function DeadlineDetailPage() {
             {category.name}
           </span>
         )}
-        
+
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <CalendarIcon className="w-4 h-4" />
@@ -280,7 +308,7 @@ export function DeadlineDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <Button 
+          <Button
             className="w-full h-14 gradient-primary glow-primary justify-between"
             onClick={() => navigate(`/focus?deadline=${id}`)}
           >
@@ -301,7 +329,7 @@ export function DeadlineDetailPage() {
           transition={{ delay: 0.15 }}
           className="mb-6"
         >
-          <ChildDeadlinesList 
+          <ChildDeadlinesList
             children={childDeadlines}
             categories={categories}
             parentDeadlineAt={deadline.deadline_at}
@@ -346,14 +374,10 @@ export function DeadlineDetailPage() {
         </div>
 
         {/* Subtasks List with Drag & Drop */}
-        <Reorder.Group 
-          axis="y" 
-          values={subtasks} 
-          onReorder={(newOrder: Subtask[]) => {
-            if (id) {
-              reorderSubtasks(id, newOrder.map(s => s.id));
-            }
-          }}
+        <Reorder.Group
+          axis="y"
+          values={subtasks}
+          onReorder={handleReorder}
           className="space-y-2"
         >
           {subtasks.map((subtask) => (
@@ -386,8 +410,8 @@ export function DeadlineDetailPage() {
             variant="outline"
             className={cn(
               "w-full h-12",
-              canComplete 
-                ? "border-success text-success hover:bg-success/10" 
+              canComplete
+                ? "border-success text-success hover:bg-success/10"
                 : "border-muted text-muted-foreground cursor-not-allowed"
             )}
             onClick={handleCompleteDeadline}
