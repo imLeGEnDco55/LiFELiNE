@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Pause, SkipForward, Coffee, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -149,40 +154,64 @@ export function MiniPomodoro() {
 
       {/* Controls */}
       <div className="flex items-center justify-center gap-3 mt-6">
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full w-10 h-10"
-          onClick={resetTimer}
-        >
-          <RotateCcw className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-10 h-10"
+              onClick={resetTimer}
+              aria-label="Reiniciar Temporizador"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Reiniciar</p>
+          </TooltipContent>
+        </Tooltip>
 
-        <Button
-          size="lg"
-          className={cn(
-            "rounded-full w-16 h-16",
-            isRunning 
-              ? "bg-destructive hover:bg-destructive/90" 
-              : "bg-gradient-to-br from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
-          )}
-          onClick={toggleTimer}
-        >
-          {isRunning ? (
-            <Pause className="w-6 h-6" />
-          ) : (
-            <Play className="w-6 h-6 ml-0.5" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="lg"
+              className={cn(
+                "rounded-full w-16 h-16",
+                isRunning
+                  ? "bg-destructive hover:bg-destructive/90"
+                  : "bg-gradient-to-br from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
+              )}
+              onClick={toggleTimer}
+              aria-label={isRunning ? "Pausar Temporizador" : "Iniciar Temporizador"}
+            >
+              {isRunning ? (
+                <Pause className="w-6 h-6" />
+              ) : (
+                <Play className="w-6 h-6 ml-0.5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isRunning ? "Pausar" : "Iniciar"}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full w-10 h-10"
-          onClick={skipSession}
-        >
-          <SkipForward className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-10 h-10"
+              onClick={skipSession}
+              aria-label="Saltar Sesión"
+            >
+              <SkipForward className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Saltar</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
