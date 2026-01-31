@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Deadline, Subtask, Category, FocusSession, DEFAULT_CATEGORIES } from '@/types/deadline';
 import { useAuth } from '@/providers/AuthProvider';
@@ -215,19 +215,43 @@ export function useCloudDeadlines() {
         return map;
     }, [subtasks]);
 
-    const getChildDeadlines = (parentId: string) => deadlines.filter(d => d.parent_id === parentId);
-    const getParentDeadline = (childId: string) => {
+    // Memoized children map - O(N) -> O(1) lookup
+    const deadlineChildrenMap = useMemo(() => {
+        const map: Record<string, Deadline[]> = {};
+        deadlines.forEach(d => {
+            if (d.parent_id) {
+                if (!map[d.parent_id]) map[d.parent_id] = [];
+                map[d.parent_id].push(d);
+            }
+        });
+        return map;
+    }, [deadlines]);
+
+    // Memoized root deadlines
+    const rootDeadlinesList = useMemo(() => {
+        return deadlines.filter(d => d.parent_id === null);
+    }, [deadlines]);
+
+    // Nested deadlines helpers - now O(1) instead of O(N)
+    const getChildDeadlines = useCallback((parentId: string) => {
+        return deadlineChildrenMap[parentId] || [];
+    }, [deadlineChildrenMap]);
+
+    const getParentDeadline = useCallback((childId: string) => {
         const child = deadlines.find(d => d.id === childId);
         if (!child?.parent_id) return null;
         return deadlines.find(d => d.id === child.parent_id) || null;
-    };
-    const getRootDeadlines = () => deadlines.filter(d => d.parent_id === null);
+    }, [deadlines]);
 
-    const canCompleteDeadline = (id: string) => {
-        const children = deadlines.filter(d => d.parent_id === id);
+    const getRootDeadlines = useCallback(() => {
+        return rootDeadlinesList;
+    }, [rootDeadlinesList]);
+
+    const canCompleteDeadline = useCallback((id: string) => {
+        const children = deadlineChildrenMap[id] || [];
         if (children.length === 0) return true;
         return children.every(c => c.completed_at !== null);
-    };
+    }, [deadlineChildrenMap]);
 
     const convertSubtaskToDeadline = async (subtaskId: string) => {
         if (!user) return null;
