@@ -215,16 +215,33 @@ export function useCloudDeadlines() {
         return map;
     }, [subtasks]);
 
-    const getChildDeadlines = (parentId: string) => deadlines.filter(d => d.parent_id === parentId);
+    // Memoized children map - O(N) -> O(1) lookup
+    const deadlineChildrenMap = useMemo(() => {
+        const map: Record<string, Deadline[]> = {};
+        deadlines.forEach(d => {
+            if (d.parent_id) {
+                if (!map[d.parent_id]) map[d.parent_id] = [];
+                map[d.parent_id].push(d);
+            }
+        });
+        return map;
+    }, [deadlines]);
+
+    // Memoized root deadlines
+    const rootDeadlinesList = useMemo(() => {
+        return deadlines.filter(d => d.parent_id === null);
+    }, [deadlines]);
+
+    const getChildDeadlines = (parentId: string) => deadlineChildrenMap[parentId] || [];
     const getParentDeadline = (childId: string) => {
         const child = deadlines.find(d => d.id === childId);
         if (!child?.parent_id) return null;
         return deadlines.find(d => d.id === child.parent_id) || null;
     };
-    const getRootDeadlines = () => deadlines.filter(d => d.parent_id === null);
+    const getRootDeadlines = () => rootDeadlinesList;
 
     const canCompleteDeadline = (id: string) => {
-        const children = deadlines.filter(d => d.parent_id === id);
+        const children = deadlineChildrenMap[id] || [];
         if (children.length === 0) return true;
         return children.every(c => c.completed_at !== null);
     };

@@ -158,10 +158,27 @@ export function useLocalDeadlines() {
     return map;
   }, [subtasks]);
 
+  // Memoized children map - O(N) -> O(1) lookup
+  const deadlineChildrenMap = useMemo(() => {
+    const map: Record<string, Deadline[]> = {};
+    deadlines.forEach(d => {
+      if (d.parent_id) {
+        if (!map[d.parent_id]) map[d.parent_id] = [];
+        map[d.parent_id].push(d);
+      }
+    });
+    return map;
+  }, [deadlines]);
+
+  // Memoized root deadlines
+  const rootDeadlinesList = useMemo(() => {
+    return deadlines.filter(d => d.parent_id === null);
+  }, [deadlines]);
+
   // Nested deadlines helpers
   const getChildDeadlines = useCallback((parentId: string) => {
-    return deadlines.filter(d => d.parent_id === parentId);
-  }, [deadlines]);
+    return deadlineChildrenMap[parentId] || [];
+  }, [deadlineChildrenMap]);
 
   const getParentDeadline = useCallback((childId: string) => {
     const child = deadlines.find(d => d.id === childId);
@@ -170,14 +187,14 @@ export function useLocalDeadlines() {
   }, [deadlines]);
 
   const getRootDeadlines = useCallback(() => {
-    return deadlines.filter(d => d.parent_id === null);
-  }, [deadlines]);
+    return rootDeadlinesList;
+  }, [rootDeadlinesList]);
 
   const canCompleteDeadline = useCallback((id: string) => {
-    const children = deadlines.filter(d => d.parent_id === id);
+    const children = deadlineChildrenMap[id] || [];
     if (children.length === 0) return true;
     return children.every(c => c.completed_at !== null);
-  }, [deadlines]);
+  }, [deadlineChildrenMap]);
 
   // Convert subtask to child deadline
   const convertSubtaskToDeadline = useCallback((subtaskId: string) => {
