@@ -4,7 +4,7 @@
 - **Nombre**: LiFELiNE
 - **Tipo**: Progressive Web App (PWA) de gestión de plazos y tareas.
 - **Objetivo**: Ayudar a los usuarios a gestionar sus fechas límite, tareas y enfoque de manera visual y eficiente.
-- **Estado Actual**: PWA desplegada en GitHub Pages. Arquitectura Híbrida (Local vs Cloud) implementada. Modo Cloud tiene un defecto pendiente de revisar.
+- **Estado Actual**: PWA desplegada en GitHub Pages. Arquitectura Híbrida (Local vs Cloud) funcional y verificada.
 
 ## 🛠 Tech Stack
 - **Core**: React 18, TypeScript, Vite.
@@ -36,12 +36,12 @@
 - **Supabase**: Proyecto `qohehkmfsyhgucwaqqev`
 
 ## 🐛 Defectos Pendientes
-- [ ] **Modo Nube**: Hay un defecto al usar el modo Cloud (detalles por determinar).
-- [ ] Error de consola: `<line> attribute x1/x2: Expected length, "undefined"` (probable issue en Recharts/gráficos).
+- [x] **Modo Nube**: Corregido error de UUID en categorías (Auto-seeding implementado).
+- [x] Error de consola: `<line> attribute x1/x2` (Corregido deshabilitando cursor en charts).
 
 ## 🚀 Next Steps
-- [ ] Debuggear modo Nube (crear usuario, crear deadlines).
-- [ ] Revisar error de atributos SVG en gráficos.
+- [x] Debuggear modo Nube (crear usuario, crear deadlines).
+- [x] Revisar error de atributos SVG en gráficos.
 - [ ] Pulir UI/UX (Animaciones, transiciones).
 
 ## 📜 Reglas de Desarrollo (User Rules)
