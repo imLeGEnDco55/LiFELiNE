@@ -230,8 +230,53 @@ export function useCloudDeadlines() {
     };
 
     const convertSubtaskToDeadline = async (subtaskId: string) => {
-        // Not implemented in cloud yet
-        return null;
+        if (!user) return null;
+
+        const subtask = subtasks.find(s => s.id === subtaskId);
+        if (!subtask) return null;
+
+        const parentDeadline = deadlines.find(d => d.id === subtask.deadline_id);
+        if (!parentDeadline) return null;
+
+        // Create new deadline from subtask
+        const { data: newDeadline, error: createError } = await supabase
+            .from('deadlines')
+            .insert({
+                user_id: user.id,
+                title: subtask.title,
+                description: null,
+                deadline_at: parentDeadline.deadline_at,
+                priority: parentDeadline.priority,
+                category_id: parentDeadline.category_id,
+                parent_id: parentDeadline.id,
+                completed_at: subtask.completed ? new Date().toISOString() : null
+            })
+            .select()
+            .single();
+
+        if (createError) {
+            console.error('[Cloud] Error converting subtask to deadline:', createError);
+            return null;
+        }
+
+        // Delete the original subtask
+        const { error: deleteError } = await supabase
+            .from('subtasks')
+            .delete()
+            .eq('id', subtaskId);
+
+        if (deleteError) {
+            console.error('[Cloud] Error deleting converted subtask:', deleteError);
+            // We continue anyway since the deadline was created
+        }
+
+        // Update local state
+        if (newDeadline) {
+            setDeadlines(prev => [...prev, newDeadline as any]);
+            setSubtasks(prev => prev.filter(s => s.id !== subtaskId));
+        }
+
+        return newDeadline;
     };
 
     const reorderSubtasks = async (deadlineId: string, reorderedIds: string[]) => {
