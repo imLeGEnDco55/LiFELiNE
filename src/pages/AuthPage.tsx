@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Lock, User, Eye, EyeOff, Cloud, CloudOff, Database } from 'lucide-react';
+import { Heart, Mail, Lock, User, Eye, EyeOff, Cloud, CloudOff, Database, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/providers/AuthProvider';
@@ -54,8 +54,9 @@ export function AuthPage() {
         toast.success('¡Cuenta creada! Bienvenido a LiFELiNE');
         navigate('/');
       }
-    } catch (error: any) {
-      toast.error(error.message || 'Error de autenticación');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error de autenticación';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +123,7 @@ export function AuthPage() {
             <Input
               type="text"
               placeholder="Tu nombre"
+              aria-label="Tu nombre"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               className="pl-11 h-12 bg-card border-border"
@@ -134,6 +136,7 @@ export function AuthPage() {
           <Input
             type="email"
             placeholder={mode === 'local' ? "Email (solo ID local)" : "Email"}
+            aria-label="Correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="pl-11 h-12 bg-card border-border"
@@ -145,17 +148,21 @@ export function AuthPage() {
           <Input
             type={showPassword ? 'text' : 'password'}
             placeholder="Contraseña"
+            aria-label="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="pl-11 pr-11 h-12 bg-card border-border"
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground hover:bg-transparent"
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </button>
+          </Button>
         </div>
 
         <Button
@@ -166,6 +173,7 @@ export function AuthPage() {
           )}
           disabled={isLoading}
         >
+          {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
           {isLoading ? 'Cargando...' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
         </Button>
       </motion.form>
