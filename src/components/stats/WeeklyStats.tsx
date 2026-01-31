@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, CheckCircle2, Target } from 'lucide-react';
 import { useDeadlines } from '@/hooks/useDeadlines';
@@ -5,7 +6,14 @@ import { cn } from '@/lib/utils';
 
 export function WeeklyStats() {
   const { weeklyStats, categories } = useDeadlines();
-  
+
+  // O(1) lookup map - built once when categories change
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, { name: string; color: string }>();
+    categories.forEach(c => map.set(c.id, { name: c.name, color: c.color }));
+    return map;
+  }, [categories]);
+
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -15,12 +23,12 @@ export function WeeklyStats() {
 
   const getCategoryName = (id: string) => {
     if (id === 'uncategorized') return 'Sin categoría';
-    return categories.find(c => c.id === id)?.name || id;
+    return categoryMap.get(id)?.name || id;
   };
 
   const getCategoryColor = (id: string) => {
     if (id === 'uncategorized') return 'hsl(var(--muted-foreground))';
-    return categories.find(c => c.id === id)?.color || 'hsl(var(--primary))';
+    return categoryMap.get(id)?.color || 'hsl(var(--primary))';
   };
 
   const categoryEntries = Object.entries(weeklyStats.completedByCategory);
@@ -78,7 +86,7 @@ export function WeeklyStats() {
             {categoryEntries.map(([catId, count]) => (
               <div key={catId} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span 
+                  <span
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: getCategoryColor(catId) }}
                   />

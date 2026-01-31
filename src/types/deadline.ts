@@ -7,6 +7,7 @@ export interface Category {
   name: string;
   color: string;
   icon?: string;
+  order_index?: number;
 }
 
 export interface Deadline {

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Deadline, Subtask, Category, FocusSession, DEFAULT_CATEGORIES } from '@/types/deadline';
 import { useAuth } from '@/providers/AuthProvider';
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO, startOfDay, subDays, isSameDay } from 'date-fns';
+import { calculateWeeklyStats, calculateStreakStats } from '@/lib/stats';
 
 export function useCloudDeadlines() {
     const { user } = useAuth();
@@ -20,10 +20,20 @@ export function useCloudDeadlines() {
         const fetchData = async () => {
             setLoading(true);
 
-            const { data: deadlinesData } = await supabase.from('deadlines').select('*');
-            const { data: subtasksData } = await supabase.from('subtasks').select('*');
-            let { data: categoriesData } = await supabase.from('categories').select('*');
-            const { data: sessionsData } = await supabase.from('focus_sessions').select('*');
+            // Parallel fetch - all queries run simultaneously
+            const [
+                { data: deadlinesData },
+                { data: subtasksData },
+                { data: categoriesResult },
+                { data: sessionsData }
+            ] = await Promise.all([
+                supabase.from('deadlines').select('*'),
+                supabase.from('subtasks').select('*').order('order_index'),
+                supabase.from('categories').select('*'),
+                supabase.from('focus_sessions').select('*')
+            ]);
+
+            let categoriesData = categoriesResult;
 
             // Seed categories if empty
             if (!categoriesData || categoriesData.length === 0) {
@@ -190,16 +200,20 @@ export function useCloudDeadlines() {
     };
 
     // Helpers (Logic copied from useLocalDeadlines)
-    const getSubtasksForDeadline = (deadlineId: string) => subtasks.filter(s => s.deadline_id === deadlineId);
+    const getSubtasksForDeadline = (deadlineId: string) =>
+        subtasks.filter(s => s.deadline_id === deadlineId).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
 
-    const getSubtasksMap = () => {
+    // Memoized subtasks map - only recomputes when subtasks change
+    const subtasksMap = useMemo(() => {
         const map: Record<string, Subtask[]> = {};
-        subtasks.forEach(subtask => {
+        // Sort first, then group
+        const sorted = [...subtasks].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+        sorted.forEach(subtask => {
             if (!map[subtask.deadline_id]) map[subtask.deadline_id] = [];
             map[subtask.deadline_id].push(subtask);
         });
         return map;
-    };
+    }, [subtasks]);
 
     const getChildDeadlines = (parentId: string) => deadlines.filter(d => d.parent_id === parentId);
     const getParentDeadline = (childId: string) => {
@@ -221,11 +235,48 @@ export function useCloudDeadlines() {
     };
 
     const reorderSubtasks = async (deadlineId: string, reorderedIds: string[]) => {
-        // Not implemented in cloud yet - requires DB order index update
+        // Update order_index for each subtask in Supabase
+        const updates = reorderedIds.map((id, index) =>
+            supabase.from('subtasks').update({ order_index: index }).eq('id', id)
+        );
+
+        const results = await Promise.all(updates);
+        const hasError = results.some(r => r.error);
+
+        if (hasError) {
+            console.error('[Cloud] Error reordering subtasks');
+            return;
+        }
+
+        // Update local state
+        setSubtasks(prev => {
+            const updated = [...prev];
+            reorderedIds.forEach((id, index) => {
+                const idx = updated.findIndex(s => s.id === id);
+                if (idx !== -1) {
+                    updated[idx] = { ...updated[idx], order_index: index };
+                }
+            });
+            return updated;
+        });
     };
 
     const reorderCategories = async (reorderedCategories: Category[]) => {
-        // Not implemented
+        // Update order_index for each category in Supabase
+        const updates = reorderedCategories.map((cat, index) =>
+            supabase.from('categories').update({ order_index: index }).eq('id', cat.id)
+        );
+
+        const results = await Promise.all(updates);
+        const hasError = results.some(r => r.error);
+
+        if (hasError) {
+            console.error('[Cloud] Error reordering categories');
+            return;
+        }
+
+        // Update local state with new order
+        setCategories(reorderedCategories.map((c, i) => ({ ...c, order_index: i })));
     };
 
     // Stats Logic (Pure functions using state)
@@ -233,16 +284,26 @@ export function useCloudDeadlines() {
     // but for now I'll duplicate the memoization logic or just return basic stats.
     // Ideally we should extract `calculateStats` to a utility file.
 
+    // Stats computed using shared utilities
+    const weeklyStats = useMemo(() =>
+        calculateWeeklyStats(deadlines, focusSessions),
+        [deadlines, focusSessions]
+    );
+
+    const streakStats = useMemo(() =>
+        calculateStreakStats(deadlines, focusSessions),
+        [deadlines, focusSessions]
+    );
+
     // Return equivalent structure
     return {
         deadlines,
         subtasks,
         categories,
         focusSessions,
-        subtasksMap: getSubtasksMap(),
-        // Logic below should be computed - for now returning placeholders or basic ops
-        weeklyStats: { completedTotal: 0, completedByCategory: {}, totalFocusMinutes: 0, focusSessionsCount: 0, todaySessionsCount: 0 },
-        streakStats: { currentStreak: 0, longestStreak: 0, todayActive: false },
+        subtasksMap,
+        weeklyStats,
+        streakStats,
         createDeadline,
         updateDeadline,
         deleteDeadline,

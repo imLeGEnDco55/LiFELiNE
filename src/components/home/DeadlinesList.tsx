@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,13 @@ export function DeadlinesList({
   onDeadlineClick,
   onCreateClick,
 }: DeadlinesListProps) {
+  // O(1) lookup map - built once when categories change
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, Category>();
+    categories.forEach(c => map.set(c.id, c));
+    return map;
+  }, [categories]);
+
   // Helper to count children for a deadline
   const getChildrenCount = (deadlineId: string) => {
     return allDeadlines.filter(d => d.parent_id === deadlineId).length;
@@ -64,7 +72,7 @@ export function DeadlinesList({
           <DeadlineCard
             deadline={deadline}
             subtasks={subtasksMap[deadline.id]}
-            category={categories.find((c) => c.id === deadline.category_id)}
+            category={deadline.category_id ? categoryMap.get(deadline.category_id) : undefined}
             childrenCount={getChildrenCount(deadline.id)}
             onClick={() => onDeadlineClick(deadline.id)}
           />

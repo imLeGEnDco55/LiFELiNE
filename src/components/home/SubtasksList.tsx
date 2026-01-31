@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -20,6 +21,13 @@ export function SubtasksList({
   onToggleSubtask,
   onDeadlineClick,
 }: SubtasksListProps) {
+  // O(1) lookup map - built once when categories change
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, Category>();
+    categories.forEach(c => map.set(c.id, c));
+    return map;
+  }, [categories]);
+
   // Filter deadlines that have subtasks
   const deadlinesWithSubtasks = deadlines.filter(
     (d) => subtasksMap[d.id]?.length > 0
@@ -43,7 +51,7 @@ export function SubtasksList({
     <div className="space-y-4">
       {deadlinesWithSubtasks.map((deadline, index) => {
         const subtasks = subtasksMap[deadline.id] || [];
-        const category = categories.find((c) => c.id === deadline.category_id);
+        const category = deadline.category_id ? categoryMap.get(deadline.category_id) : undefined;
         const completedCount = subtasks.filter((s) => s.completed).length;
 
         return (
@@ -98,7 +106,7 @@ export function SubtasksList({
                         <Circle className="w-5 h-5 text-muted-foreground" />
                       )}
                     </button>
-                    
+
                     <div className="flex-1 min-w-0">
                       <p className={cn(
                         "text-sm truncate",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,17 +9,24 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { SplashScreen } from "@/components/pwa/SplashScreen";
 import { useSync } from "@/hooks/useSync";
 
-// Pages
-import { AuthPage } from "@/pages/AuthPage";
-import { HomePage } from "@/pages/HomePage";
-import { CreateDeadlinePage } from "@/pages/CreateDeadlinePage";
-import { DeadlineDetailPage } from "@/pages/DeadlineDetailPage";
-import { CalendarPage } from "@/pages/CalendarPage";
-import { StatsPage } from "@/pages/StatsPage";
-import { FocusPage } from "@/pages/FocusPage";
-import { TasksPage } from "@/pages/TasksPage";
-import { SettingsPage } from "@/pages/SettingsPage";
-import NotFound from "@/pages/NotFound";
+// Lazy-loaded pages for code splitting
+const AuthPage = lazy(() => import("@/pages/AuthPage").then(m => ({ default: m.AuthPage })));
+const HomePage = lazy(() => import("@/pages/HomePage").then(m => ({ default: m.HomePage })));
+const CreateDeadlinePage = lazy(() => import("@/pages/CreateDeadlinePage").then(m => ({ default: m.CreateDeadlinePage })));
+const DeadlineDetailPage = lazy(() => import("@/pages/DeadlineDetailPage").then(m => ({ default: m.DeadlineDetailPage })));
+const CalendarPage = lazy(() => import("@/pages/CalendarPage").then(m => ({ default: m.CalendarPage })));
+const StatsPage = lazy(() => import("@/pages/StatsPage").then(m => ({ default: m.StatsPage })));
+const FocusPage = lazy(() => import("@/pages/FocusPage").then(m => ({ default: m.FocusPage })));
+const TasksPage = lazy(() => import("@/pages/TasksPage").then(m => ({ default: m.TasksPage })));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage").then(m => ({ default: m.SettingsPage })));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
+// Loading fallback for lazy components
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -94,43 +101,45 @@ const App = () => {
           </AnimatePresence>
 
           <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <Routes>
-              {/* Auth */}
-              <Route path="/auth" element={
-                <PublicRoute>
-                  <AuthPage />
-                </PublicRoute>
-              } />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Auth */}
+                <Route path="/auth" element={
+                  <PublicRoute>
+                    <AuthPage />
+                  </PublicRoute>
+                } />
 
-              {/* Protected Routes */}
-              <Route element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/stats" element={<StatsPage />} />
-                <Route path="/focus" element={<FocusPage />} />
-                <Route path="/tasks" element={<TasksPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-              </Route>
+                {/* Protected Routes */}
+                <Route element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/stats" element={<StatsPage />} />
+                  <Route path="/focus" element={<FocusPage />} />
+                  <Route path="/tasks" element={<TasksPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                </Route>
 
-              {/* Detail pages (also protected but without bottom nav) */}
-              <Route path="/create" element={
-                <ProtectedRoute>
-                  <CreateDeadlinePage />
-                </ProtectedRoute>
-              } />
-              <Route path="/deadline/:id" element={
-                <ProtectedRoute>
-                  <DeadlineDetailPage />
-                </ProtectedRoute>
-              } />
+                {/* Detail pages (also protected but without bottom nav) */}
+                <Route path="/create" element={
+                  <ProtectedRoute>
+                    <CreateDeadlinePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/deadline/:id" element={
+                  <ProtectedRoute>
+                    <DeadlineDetailPage />
+                  </ProtectedRoute>
+                } />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

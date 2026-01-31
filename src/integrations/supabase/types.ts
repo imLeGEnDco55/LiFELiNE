@@ -78,6 +78,7 @@ export type Database = {
           icon: string | null
           id: string
           name: string
+          order_index: number
           updated_at: string
           user_id: string
         }
@@ -87,6 +88,7 @@ export type Database = {
           icon?: string | null
           id?: string
           name: string
+          order_index?: number
           updated_at?: string
           user_id: string
         }
@@ -96,6 +98,7 @@ export type Database = {
           icon?: string | null
           id?: string
           name?: string
+          order_index?: number
           updated_at?: string
           user_id?: string
         }
