@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate } from 'lucide-react';
+import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate, Cloud, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFeedbackSettings } from '@/hooks/useFeedbackSettings';
+import { useSync } from '@/hooks/useSync';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -24,9 +25,10 @@ import {
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, mode } = useAuth();
   const { settings, isSupported, toggleNotifications, toggle24h, toggle1h } = useNotifications();
   const { settings: feedbackSettings, toggleSound, toggleHaptic } = useFeedbackSettings();
+  const { syncLocalToCloud, isSyncing, lastSync } = useSync();
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   const handleSignOut = async () => {
@@ -93,6 +95,35 @@ export function SettingsPage() {
           label="Editar Perfil" 
           onClick={() => toast.info('Próximamente')} 
         />
+
+        {/* Sync Section (Only for Cloud Mode) */}
+        {mode === 'cloud' && (
+          <div className="p-4 bg-card rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Cloud className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Sincronización</p>
+                  <p className="text-xs text-muted-foreground">
+                    {lastSync
+                      ? `Última: ${new Date(lastSync).toLocaleString()}`
+                      : 'Sube tus datos locales a la nube'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={syncLocalToCloud}
+                disabled={isSyncing}
+                className="gap-2"
+              >
+                <RotateCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+                {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+              </Button>
+            </div>
+          </div>
+        )}
         
         {/* Notifications Section */}
         <div className="space-y-0">
@@ -264,7 +295,7 @@ export function SettingsPage() {
 
       {/* Version */}
       <p className="text-center text-muted-foreground text-xs mt-8">
-        Deadliner v1.0.0 (Local Mode)
+        Deadliner v1.0.0 ({mode === 'local' ? 'Local Mode' : 'Cloud Mode'})
       </p>
     </div>
   );
