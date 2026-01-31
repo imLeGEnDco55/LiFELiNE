@@ -4,16 +4,17 @@
 - **Nombre**: LiFELiNE
 - **Tipo**: Progressive Web App (PWA) de gestión de plazos y tareas.
 - **Objetivo**: Ayudar a los usuarios a gestionar sus fechas límite, tareas y enfoque de manera visual y eficiente.
-- **Estado Actual**: Desarrollo activo. Arquitectura Híbrida (Local vs Cloud). Autenticación implementada con soporte dual.
+- **Estado Actual**: PWA desplegada en GitHub Pages. Arquitectura Híbrida (Local vs Cloud) implementada. Modo Cloud tiene un defecto pendiente de revisar.
 
 ## 🛠 Tech Stack
 - **Core**: React 18, TypeScript, Vite.
 - **Estilos**: Tailwind CSS, CSS Modules (App.css, index.css).
 - **UI Components**: Shadcn/ui (basado en Radix UI), Lucide React (iconos).
 - **Animación**: Framer Motion.
-- **Estado/Data**: TanStack Query (React Query), Zustand (posible, a confirmar), Context API.
+- **Estado/Data**: TanStack Query (React Query), Context API.
 - **Routing**: React Router DOM v6.
-- **Backend/Baas**: Supabase (integrado, configuración en `src/integrations/supabase`).
+- **Backend/BaaS**: Supabase (`qohehkmfsyhgucwaqqev`).
+- **PWA**: vite-plugin-pwa, manifest estático en `public/`.
 - **Validación**: Zod, React Hook Form.
 - **Utils**: date-fns, clsx, tailwind-merge.
 
@@ -26,20 +27,25 @@
 - `src/hooks`: Hooks personalizados (`useAuth`, `useDeadlines` [Pivot], `useLocalDeadlines`, `useCloudDeadlines`).
 - `src/providers`: `AuthProvider` (Manejo de estado global de auth y modo híbrido).
 - `src/integrations`: Integraciones externas (Supabase).
-- `src/lib`: Utilidades de librería (utils.ts).
-- `public`: Assets estáticos.
+- `public`: Assets estáticos + manifest.webmanifest.
+- `.github/workflows`: GitHub Actions para deploy a GH Pages.
 
-## 📜 Reglas de Desarrollo (User Rules)
-1. **Modo Flow**: Tú eres el arquitecto/realizador. El usuario define el "QUÉ", tú el "CÓMO".
-2. **Abstracción**: Respuestas concisas ("✅ Listo"). No explicar código salvo petición.
-3. **Archivos**: Edición directa. Gestión de Git autónoma (preparar commits).
-4. **Scope**: Enfoque MVP. Iterar rápido. Evitar over-engineering.
-5. **Documentación**: `CONTEXT.md` es la fuente de la verdad. Mantener actualizado.
-6. **Rendimiento**: Optimizado para Desktop i5-2500k y Android gama media.
-7. **Diseño**: "Premium", visualmente impactante. Usar `generate_image` si se necesitan assets nuevos, o buscar en `assets/`.
+## 🌐 Producción
+- **URL**: https://imlegendco55.github.io/LiFELiNE/
+- **Deploy**: GitHub Actions (automático en push a main)
+- **Supabase**: Proyecto `qohehkmfsyhgucwaqqev`
+
+## 🐛 Defectos Pendientes
+- [ ] **Modo Nube**: Hay un defecto al usar el modo Cloud (detalles por determinar).
+- [ ] Error de consola: `<line> attribute x1/x2: Expected length, "undefined"` (probable issue en Recharts/gráficos).
 
 ## 🚀 Next Steps
-- [ ] Completar documentación (README.md, AGENTS.md).
-- [ ] Verificar integración con Supabase vs Auth Local.
+- [ ] Debuggear modo Nube (crear usuario, crear deadlines).
+- [ ] Revisar error de atributos SVG en gráficos.
 - [ ] Pulir UI/UX (Animaciones, transiciones).
-- [ ] Verificar funcionalidad PWA (Service Workers, Manifest).
+
+## 📜 Reglas de Desarrollo (User Rules)
+1. **Modo Flow**: Respuestas concisas. Edición directa de archivos.
+2. **Scope**: Enfoque MVP. Iterar rápido.
+3. **Rendimiento**: Optimizado para Desktop i5-2500k y Android gama media.
+4. **Documentación**: `CONTEXT.md` es la fuente de la verdad.
