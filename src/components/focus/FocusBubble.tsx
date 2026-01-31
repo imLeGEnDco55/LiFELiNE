@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MiniPomodoro } from './MiniPomodoro';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +34,7 @@ export function FocusBubble() {
         style={{
           boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
         }}
+        aria-label="Abrir Temporizador"
       >
         🍅
       </motion.button>
@@ -59,14 +65,22 @@ export function FocusBubble() {
                     <span className="text-2xl">🍅</span>
                     <h2 className="text-lg font-bold">Pomodoro Focus</h2>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(false)}
-                    className="rounded-full"
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsOpen(false)}
+                        className="rounded-full"
+                        aria-label="Cerrar Temporizador"
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Cerrar Temporizador</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 
                 <MiniPomodoro />
