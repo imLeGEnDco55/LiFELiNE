@@ -36,7 +36,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem('lifeline-initial-sync', 'true');
       }
     }
-  }, [user, mode]);
+  }, [user, mode, syncLocalToCloud]);
 
   if (loading) {
     return (
