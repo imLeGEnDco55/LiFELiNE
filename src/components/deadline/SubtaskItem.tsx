@@ -3,6 +3,7 @@ import { Reorder } from 'framer-motion';
 import { GripVertical, Trash2, Target } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,17 +66,25 @@ export const SubtaskItem = memo(function SubtaskItem({
         )}>
           {subtask.title}
         </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              aria-label="Eliminar subtarea"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Eliminar subtarea</p>
+          </TooltipContent>
+        </Tooltip>
       </Reorder.Item>
 
       <AlertDialog open={showConvertDialog} onOpenChange={setShowConvertDialog}>
