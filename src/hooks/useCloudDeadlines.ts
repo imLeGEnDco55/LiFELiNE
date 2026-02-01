@@ -27,10 +27,10 @@ export function useCloudDeadlines() {
                 { data: categoriesResult },
                 { data: sessionsData }
             ] = await Promise.all([
-                supabase.from('deadlines').select('*'),
-                supabase.from('subtasks').select('*').order('order_index'),
-                supabase.from('categories').select('*'),
-                supabase.from('focus_sessions').select('*')
+                supabase.from('deadlines').select('*').eq('user_id', user.id),
+                supabase.from('subtasks').select('*').eq('user_id', user.id).order('order_index'),
+                supabase.from('categories').select('*').eq('user_id', user.id),
+                supabase.from('focus_sessions').select('*').eq('user_id', user.id)
             ]);
 
             let categoriesData = categoriesResult;
@@ -87,7 +87,7 @@ export function useCloudDeadlines() {
             return;
         }
 
-        console.log('[Cloud] Creating deadline for user:', user.id, data);
+        console.log('[Cloud] Creating deadline for user:', user.id);
 
         const { data: newDeadline, error } = await supabase.from('deadlines').insert({
             ...data,
@@ -100,7 +100,7 @@ export function useCloudDeadlines() {
         }
 
         if (newDeadline) {
-            console.log('[Cloud] Deadline created successfully:', newDeadline);
+            console.log('[Cloud] Deadline created successfully');
             setDeadlines(prev => [...prev, newDeadline as any]);
         }
         return newDeadline;
