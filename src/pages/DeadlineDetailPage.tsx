@@ -6,6 +6,7 @@ import { format, parseISO, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { AutopsyModal } from '@/components/vitality/AutopsyModal';
@@ -168,9 +169,16 @@ export function DeadlineDetailPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between mb-6"
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Volver atrás">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Volver atrás</p>
+          </TooltipContent>
+        </Tooltip>
         <div className="flex items-center gap-2">
           {isOverdue && (
             <Button
@@ -183,21 +191,37 @@ export function DeadlineDetailPage() {
               Ver Autopsia
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setEditOpen(true)}
-          >
-            <Pencil className="w-5 h-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-destructive"
-            onClick={handleDeleteDeadline}
-          >
-            <Trash2 className="w-5 h-5" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditOpen(true)}
+                aria-label="Editar deadline"
+              >
+                <Pencil className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Editar deadline</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive"
+                onClick={handleDeleteDeadline}
+                aria-label="Eliminar deadline"
+              >
+                <Trash2 className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Eliminar deadline</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </motion.header>
 
@@ -364,13 +388,21 @@ export function DeadlineDetailPage() {
             }}
             className="bg-card"
           />
-          <Button
-            size="icon"
-            disabled={!newSubtask.trim()}
-            onClick={() => handleAddSubtask(newSubtask.trim())}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                disabled={!newSubtask.trim()}
+                onClick={() => handleAddSubtask(newSubtask.trim())}
+                aria-label="Agregar subtarea"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Agregar subtarea</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Subtasks List with Drag & Drop */}
