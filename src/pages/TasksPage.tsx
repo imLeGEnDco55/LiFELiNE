@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 interface SubtaskWithDeadline extends Subtask {
   deadline?: Deadline;
@@ -64,21 +65,27 @@ export function TasksPage() {
   });
 
   // Group subtasks by deadline
-  const deadlineMap = new Map(deadlines.map(d => [d.id, d]));
-  const groupedSubtasks: Record<string, SubtaskWithDeadline[]> = {};
+  // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
+  const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
 
-  subtasks.forEach(subtask => {
-    const deadline = deadlineMap.get(subtask.deadline_id);
-    if (deadline) {
-      if (!groupedSubtasks[subtask.deadline_id]) {
-        groupedSubtasks[subtask.deadline_id] = [];
+  // Memoize groupedSubtasks to avoid O(N) processing on every render
+  const groupedSubtasks = useMemo(() => {
+    const grouped: Record<string, SubtaskWithDeadline[]> = {};
+    subtasks.forEach(subtask => {
+      const deadline = deadlineMap.get(subtask.deadline_id);
+      if (deadline) {
+        if (!grouped[subtask.deadline_id]) {
+          grouped[subtask.deadline_id] = [];
+        }
+        grouped[subtask.deadline_id].push({ ...subtask, deadline });
       }
-      groupedSubtasks[subtask.deadline_id].push({ ...subtask, deadline });
-    }
-  });
+    });
+    return grouped;
+  }, [subtasks, deadlineMap]);
 
-  const pendingSubtasks = subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id));
-  const completedSubtasks = subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id));
+  // Memoize derived lists to prevent unnecessary re-filtering
+  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
 
   return (
     <div className="px-4 py-6">
