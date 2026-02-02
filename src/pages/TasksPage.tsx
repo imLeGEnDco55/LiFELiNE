@@ -35,20 +35,52 @@ export function TasksPage() {
     enabled: !!user,
   });
 
-  const { data: subtasks = [] } = useQuery({
-    queryKey: ['all-subtasks', user?.id],
+  // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
+  const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
+  const activeDeadlineIds = useMemo(() => deadlines.map(d => d.id), [deadlines]);
+
+  // Optimize: Fetch only pending subtasks to avoid loading completed history
+  const { data: pendingSubtasksData = [] } = useQuery({
+    queryKey: ['pending-subtasks', user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('subtasks')
         .select('*')
         .eq('user_id', user.id)
+        .eq('completed', false)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data as Subtask[];
     },
     enabled: !!user,
   });
+
+  // Optimize: Fetch limited set of completed subtasks for active deadlines only
+  // This avoids downloading thousands of completed tasks and N+1 filtering
+  const { data: completedSubtasksResult } = useQuery({
+    queryKey: ['completed-subtasks', user?.id, activeDeadlineIds],
+    queryFn: async () => {
+      if (!user || activeDeadlineIds.length === 0) return { data: [], count: 0 };
+
+      const { data, error, count } = await supabase
+        .from('subtasks')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id)
+        .eq('completed', true)
+        .in('deadline_id', activeDeadlineIds)
+        .order('created_at', { ascending: true }) // Oldest completed first (parity with previous behavior)
+        .limit(5);
+
+      if (error) throw error;
+      return { data: data as Subtask[], count: count || 0 };
+    },
+    enabled: !!user && activeDeadlineIds.length > 0,
+    staleTime: 1000 * 60, // Cache completed tasks briefly
+  });
+
+  const completedSubtasksList = completedSubtasksResult?.data || [];
+  const completedSubtasksCount = completedSubtasksResult?.count || 0;
 
   const toggleSubtaskMutation = useMutation({
     mutationFn: async ({ subtaskId, completed }: { subtaskId: string; completed: boolean }) => {
@@ -59,19 +91,21 @@ export function TasksPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['all-subtasks'] });
-      queryClient.invalidateQueries({ queryKey: ['subtasks'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-subtasks'] });
+      queryClient.invalidateQueries({ queryKey: ['completed-subtasks'] });
     },
   });
 
-  // Group subtasks by deadline
-  // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
-  const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
+  // Filter pending subtasks to ensure they belong to active deadlines (hide orphans)
+  const pendingSubtasks = useMemo(() =>
+    pendingSubtasksData.filter(s => deadlineMap.has(s.deadline_id)),
+    [pendingSubtasksData, deadlineMap]
+  );
 
-  // Memoize groupedSubtasks to avoid O(N) processing on every render
+  // Group pending subtasks by deadline
   const groupedSubtasks = useMemo(() => {
     const grouped: Record<string, SubtaskWithDeadline[]> = {};
-    subtasks.forEach(subtask => {
+    pendingSubtasks.forEach(subtask => {
       const deadline = deadlineMap.get(subtask.deadline_id);
       if (deadline) {
         if (!grouped[subtask.deadline_id]) {
@@ -81,11 +115,7 @@ export function TasksPage() {
       }
     });
     return grouped;
-  }, [subtasks, deadlineMap]);
-
-  // Memoize derived lists to prevent unnecessary re-filtering
-  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
-  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+  }, [pendingSubtasks, deadlineMap]);
 
   return (
     <div className="px-4 py-6">
@@ -97,7 +127,7 @@ export function TasksPage() {
       >
         <h1 className="text-2xl font-bold">Mis Tareas</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {pendingSubtasks.length} pendientes · {completedSubtasks.length} completadas
+          {pendingSubtasks.length} pendientes · {completedSubtasksCount} completadas
         </p>
       </motion.header>
 
@@ -111,7 +141,7 @@ export function TasksPage() {
           const deadline = deadlineMap.get(deadlineId);
           if (!deadline) return null;
 
-          const pendingTasks = tasks.filter(t => !t.completed);
+          const pendingTasks = tasks; // All tasks in this group are pending by definition
           if (pendingTasks.length === 0) return null;
 
           return (
@@ -164,7 +194,7 @@ export function TasksPage() {
       </motion.div>
 
       {/* Completed Section */}
-      {completedSubtasks.length > 0 && (
+      {completedSubtasksList.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -172,10 +202,10 @@ export function TasksPage() {
           className="mt-8"
         >
           <h2 className="text-lg font-semibold mb-3 text-muted-foreground">
-            Completadas ({completedSubtasks.length})
+            Completadas ({completedSubtasksCount})
           </h2>
           <div className="space-y-2 opacity-60">
-            {completedSubtasks.slice(0, 5).map((subtask) => (
+            {completedSubtasksList.map((subtask) => (
               <div
                 key={subtask.id}
                 className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
