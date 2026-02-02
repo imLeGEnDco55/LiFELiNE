@@ -37,7 +37,6 @@ export function useCloudDeadlines() {
 
             // Seed categories if empty
             if (!categoriesData || categoriesData.length === 0) {
-                console.log('[Cloud] Seeding default categories...');
                 const categoriesToInsert = DEFAULT_CATEGORIES.map(c => ({
                     user_id: user.id,
                     name: c.name,
@@ -87,8 +86,6 @@ export function useCloudDeadlines() {
             return;
         }
 
-        console.log('[Cloud] Creating deadline for user:', user.id);
-
         const { data: newDeadline, error } = await supabase.from('deadlines').insert({
             ...data,
             user_id: user.id
@@ -100,7 +97,6 @@ export function useCloudDeadlines() {
         }
 
         if (newDeadline) {
-            console.log('[Cloud] Deadline created successfully');
             setDeadlines(prev => [...prev, newDeadline as any]);
         }
         return newDeadline;
