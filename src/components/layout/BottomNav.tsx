@@ -26,6 +26,7 @@ export function BottomNav() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label="Abrir temporizador Pomodoro"
                   className={cn(
                     "relative flex items-center justify-center w-14 h-14 -mt-5",
                     "rounded-full",
@@ -50,6 +51,7 @@ export function BottomNav() {
             <Link
               key={path}
               to={path}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 "relative flex flex-col items-center justify-center w-16 h-full",
                 "transition-colors duration-200",
