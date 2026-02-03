@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { validateEmail, validatePassword } from '@/lib/security';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function AuthPage() {
@@ -32,6 +33,20 @@ export function AuthPage() {
 
     if (!email.trim() || !password.trim()) {
       toast.error('Completa todos los campos');
+      return;
+    }
+
+    // Validate email format
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.success) {
+      toast.error(emailValidation.error);
+      return;
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.success) {
+      toast.error(passwordValidation.error);
       return;
     }
 
