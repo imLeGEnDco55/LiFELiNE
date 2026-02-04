@@ -39,13 +39,19 @@ export function TasksPage() {
     queryKey: ['all-subtasks', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      // Optimization: Filter out subtasks from completed deadlines at the DB level
+      // This reduces payload size by excluding historical data that isn't displayed
       const { data, error } = await supabase
         .from('subtasks')
-        .select('*')
+        .select('*, deadline:deadlines!inner(id)')
         .eq('user_id', user.id)
+        .is('deadline.completed_at', null)
         .order('created_at', { ascending: true });
+
       if (error) throw error;
-      return data as Subtask[];
+
+      // Strip the joined deadline object to match Subtask type
+      return data.map(({ deadline, ...rest }) => rest) as Subtask[];
     },
     enabled: !!user,
   });
