@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar as CalendarIcon, Clock, Flag, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Clock, Flag, Tag, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -79,9 +80,16 @@ export function CreateDeadlinePage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-4 mb-8"
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Volver atrás">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Volver atrás</p>
+          </TooltipContent>
+        </Tooltip>
         <h1 className="text-xl font-bold">Nuevo Deadline</h1>
       </motion.header>
 
@@ -92,10 +100,11 @@ export function CreateDeadlinePage() {
       >
         {/* Title Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+          <label htmlFor="title" className="text-sm font-medium text-muted-foreground">
             ¿Cuál es tu misión?
           </label>
           <Input
+            id="title"
             placeholder="Ej: Entregar proyecto final"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -245,7 +254,14 @@ export function CreateDeadlinePage() {
           disabled={!title.trim() || !selectedDate || isSubmitting}
           onClick={handleSubmit}
         >
-          {isSubmitting ? 'Creando...' : 'Iniciar Countdown 🚀'}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Creando...
+            </>
+          ) : (
+            'Iniciar Countdown 🚀'
+          )}
         </Button>
       </motion.div>
     </div>
