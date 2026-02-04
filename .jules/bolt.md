@@ -5,3 +5,7 @@
 ## 2024-05-24 - Supabase Relational Filtering
 **Learning:** Supabase/PostgREST queries filtering on joined tables (e.g., filtering subtasks by parent deadline status) default to LEFT JOIN behavior unless `!inner` is specified in the select clause (e.g., `select('*, deadline!inner(*)')`). Without `!inner`, filtering the parent returns null for the parent object but keeps the child row, failing to filter the child list itself server-side.
 **Action:** Use `!inner` hints in Supabase select clauses when the goal is to filter the primary table based on conditions in the related table to ensure server-side payload reduction.
+
+## 2024-05-25 - DeadlineDetailPage 1Hz Re-renders
+**Learning:** `DeadlineDetailPage` was re-rendering every second due to a top-level `useCountdown` hook. This caused expensive reconciliation of lists (subtasks, child deadlines) and modals even when only the timer text changed.
+**Action:** Encapsulate high-frequency state updates (like 1Hz timers) into isolated leaf components (e.g., `DeadlineHero`) to prevent re-rendering entire complex pages. Use lower-frequency timers (e.g., 60s) for page-level status checks if needed.
