@@ -8,6 +8,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { isValidEmail, isValidPassword } from '@/lib/security';
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -32,6 +33,16 @@ export function AuthPage() {
 
     if (!email.trim() || !password.trim()) {
       toast.error('Completa todos los campos');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error('Por favor ingresa un email válido');
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
