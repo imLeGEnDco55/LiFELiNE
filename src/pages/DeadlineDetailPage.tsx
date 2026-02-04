@@ -1,19 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Timer, Calendar as CalendarIcon, CheckCircle2, Skull, ChevronUp, Lock, Pencil } from 'lucide-react';
-import { format, parseISO, isBefore } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { ArrowLeft, Plus, Trash2, Timer, CheckCircle2, Skull, ChevronUp, Lock, Pencil } from 'lucide-react';
+import { parseISO, isBefore } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CircularProgress } from '@/components/deadline/CircularProgress';
-import { CountdownDisplay } from '@/components/deadline/CountdownDisplay';
 import { AutopsyModal } from '@/components/vitality/AutopsyModal';
 import { SubtaskItem } from '@/components/deadline/SubtaskItem';
 import { ChildDeadlinesList } from '@/components/deadline/ChildDeadlinesList';
 import { EditDeadlineModal } from '@/components/deadline/EditDeadlineModal';
-import { useCountdown, getDeadlineStatus } from '@/hooks/useCountdown';
+import { DeadlineHero } from '@/components/deadline/DeadlineHero';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
 import { Subtask } from '@/types/deadline';
@@ -82,22 +79,18 @@ export function DeadlineDetailPage() {
     ? categories.find(c => c.id === deadline.category_id)
     : undefined;
 
-  const timeRemaining = useCountdown(
-    deadline?.deadline_at || new Date().toISOString(),
-    deadline?.created_at
-  );
+  // Use a low-frequency timer for overdue checks (every 60s) instead of 1s
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isCompleted = !!deadline?.completed_at;
-  const isOverdue = deadline ? isBefore(parseISO(deadline.deadline_at), new Date()) && !isCompleted : false;
-  const status = getDeadlineStatus(timeRemaining, isCompleted);
-  const completedCount = subtasks.filter(s => s.completed).length;
-  const completedChildrenCount = childDeadlines.filter(c => c.completed_at).length;
-  const totalProgress = subtasks.length + childDeadlines.length;
-  const completedProgress = completedCount + completedChildrenCount;
-
-  const progressPercentage = totalProgress > 0
-    ? Math.round((completedProgress / totalProgress) * 100)
-    : Math.round(timeRemaining.percentage);
+  // Use `now` state instead of `new Date()` directly in render to ensure consistency
+  // and control re-renders if we were memoizing this component.
+  // In this case, `now` updates every 60s, triggering a re-render to update `isOverdue`.
+  const isOverdue = deadline ? isBefore(parseISO(deadline.deadline_at), now) && !isCompleted : false;
 
   const handleAddSubtask = (title: string) => {
     if (!id) return;
@@ -145,11 +138,6 @@ export function DeadlineDetailPage() {
       toast.success('¡Subtarea convertida a deadline!');
     }
   };
-
-  const variant = status === 'immediate' || status === 'overdue' ? 'urgent'
-    : status === 'warning' ? 'warning'
-      : status === 'completed' ? 'success'
-        : 'primary';
 
   if (!deadline) {
     return (
@@ -263,67 +251,13 @@ export function DeadlineDetailPage() {
         </motion.div>
       )}
 
-      {/* Main Progress Circle */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center mb-8"
-      >
-        <CircularProgress
-          percentage={progressPercentage}
-          size={200}
-          strokeWidth={14}
-          variant={variant}
-        >
-          <div className="text-center">
-            <CountdownDisplay
-              timeRemaining={timeRemaining}
-              size="sm"
-              showSeconds={timeRemaining.days === 0}
-            />
-          </div>
-        </CircularProgress>
-
-        <h1 className="text-2xl font-bold mt-4 text-center">{deadline.title}</h1>
-
-        {category && (
-          <span
-            className="mt-2 px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{
-              backgroundColor: `${category.color}20`,
-              color: category.color,
-            }}
-          >
-            {category.name}
-          </span>
-        )}
-
-        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <CalendarIcon className="w-4 h-4" />
-            {format(new Date(deadline.deadline_at), "d MMM", { locale: es })}
-          </span>
-          <span>{format(new Date(deadline.deadline_at), "HH:mm")}</span>
-        </div>
-
-        {/* Stats */}
-        <div className="flex gap-6 mt-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-primary">{progressPercentage}%</p>
-            <p className="text-xs text-muted-foreground">Progreso</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{completedCount}/{subtasks.length}</p>
-            <p className="text-xs text-muted-foreground">Subtareas</p>
-          </div>
-          {childDeadlines.length > 0 && (
-            <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{completedChildrenCount}/{childDeadlines.length}</p>
-              <p className="text-xs text-muted-foreground">Anidados</p>
-            </div>
-          )}
-        </div>
-      </motion.div>
+      {/* Main Hero Section (Timer, Title, Stats) */}
+      <DeadlineHero
+        deadline={deadline}
+        subtasks={subtasks}
+        childDeadlines={childDeadlines}
+        category={category}
+      />
 
       {/* Next Subtask Highlight */}
       {nextSubtask && !isCompleted && !isOverdue && (
