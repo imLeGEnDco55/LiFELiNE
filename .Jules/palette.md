@@ -7,3 +7,7 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+
+## 2026-02-05 - Grouping Custom Controls
+**Learning:** Visual groups of buttons acting as radios (like priority selectors) need semantic grouping to be understood by screen readers.
+**Action:** Use `role="group"` and `aria-labelledby` on the container to associate the group with its label.

@@ -114,11 +114,18 @@ export function CreateDeadlinePage() {
 
         {/* Category Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <label
+            id="category-group-label"
+            className="text-sm font-medium text-muted-foreground flex items-center gap-2"
+          >
             <Tag className="w-4 h-4" />
             Categoría
           </label>
-          <div className="flex gap-2 flex-wrap">
+          <div
+            className="flex gap-2 flex-wrap"
+            role="group"
+            aria-labelledby="category-group-label"
+          >
             <Button
               variant="secondary"
               size="sm"
@@ -210,12 +217,16 @@ export function CreateDeadlinePage() {
 
         {/* Time Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+          <label
+            htmlFor="deadline-time"
+            className="text-sm font-medium text-muted-foreground"
+          >
             Hora límite
           </label>
           <div className="relative">
             <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
+              id="deadline-time"
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
@@ -226,11 +237,18 @@ export function CreateDeadlinePage() {
 
         {/* Priority Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <label
+            id="priority-group-label"
+            className="text-sm font-medium text-muted-foreground flex items-center gap-2"
+          >
             <Flag className="w-4 h-4" />
             Prioridad
           </label>
-          <div className="flex gap-2">
+          <div
+            className="flex gap-2"
+            role="group"
+            aria-labelledby="priority-group-label"
+          >
             {priorities.map(({ value, label, color }) => (
               <Button
                 key={value}
