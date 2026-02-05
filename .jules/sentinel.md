@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2025-05-20 - [Defense in Depth: IDOR Prevention]
+**Vulnerability:** Update and delete operations in cloud hooks relied solely on Row Level Security (RLS) to restrict access. If RLS policies were disabled or misconfigured, any authenticated user could potentially modify another user's data by guessing IDs (IDOR).
+**Learning:** Security layers should be redundant. Client-side query filters act as a second line of defense and make the data access intent explicit in the code.
+**Prevention:** Updated `useCloudDeadlines.ts` to enforce `user_id` ownership checks on all modification queries (UPDATE, DELETE), not just SELECTs.
