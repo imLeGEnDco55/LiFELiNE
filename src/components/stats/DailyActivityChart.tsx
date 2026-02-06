@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { useDeadlines } from '@/hooks/useDeadlines';
-import { startOfWeek, addDays, format, parseISO, isSameDay } from 'date-fns';
+import { startOfWeek, addDays, format, parseISO, isSameDay, differenceInCalendarDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function DailyActivityChart() {
@@ -11,24 +11,36 @@ export function DailyActivityChart() {
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-    return days.map(day => {
-      const completedDeadlines = deadlines.filter(d => {
-        if (!d.completed_at) return false;
-        return isSameDay(parseISO(d.completed_at), day);
-      }).length;
+    // Initialize stats array for 7 days
+    const stats = Array.from({ length: 7 }, () => ({ deadlines: 0, focus: 0 }));
 
-      const focusMinutes = focusSessions
-        .filter(s => {
-          if (!s.completed_at || s.session_type !== 'work') return false;
-          return isSameDay(parseISO(s.started_at), day);
-        })
-        .reduce((acc, s) => acc + s.duration_minutes, 0);
+    // Single pass for deadlines - O(N)
+    deadlines.forEach(d => {
+      if (!d.completed_at) return;
+      const date = parseISO(d.completed_at);
+      const dayIndex = differenceInCalendarDays(date, weekStart);
+      if (dayIndex >= 0 && dayIndex < 7) {
+        stats[dayIndex].deadlines++;
+      }
+    });
 
+    // Single pass for focus sessions - O(M)
+    focusSessions.forEach(s => {
+      if (!s.completed_at || s.session_type !== 'work') return;
+      const date = parseISO(s.started_at);
+      const dayIndex = differenceInCalendarDays(date, weekStart);
+      if (dayIndex >= 0 && dayIndex < 7) {
+        stats[dayIndex].focus += s.duration_minutes;
+      }
+    });
+
+    // Map to chart format
+    return days.map((day, i) => {
       return {
         day: format(day, 'EEE', { locale: es }),
         fullDay: format(day, 'EEEE', { locale: es }),
-        deadlines: completedDeadlines,
-        focus: Math.round(focusMinutes / 25), // Convert to pomodoro sessions
+        deadlines: stats[i].deadlines,
+        focus: Math.round(stats[i].focus / 25), // Convert to pomodoro sessions
         isToday: isSameDay(day, new Date()),
       };
     });
