@@ -108,8 +108,9 @@ export function EditDeadlineModal({
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Título</label>
+            <label htmlFor="edit-title" className="text-sm font-medium text-muted-foreground">Título</label>
             <Input
+              id="edit-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="h-12 bg-card"
@@ -119,11 +120,11 @@ export function EditDeadlineModal({
 
           {/* Category */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <label id="edit-category-group" className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Tag className="w-4 h-4" />
               Categoría
             </label>
-            <div className="flex gap-2 flex-wrap">
+            <div role="group" aria-labelledby="edit-category-group" className="flex gap-2 flex-wrap">
               <Button
                 type="button"
                 variant="secondary"
@@ -133,6 +134,7 @@ export function EditDeadlineModal({
                   selectedCategory === null && "ring-2 ring-primary"
                 )}
                 onClick={() => setSelectedCategory(null)}
+                aria-pressed={selectedCategory === null}
               >
                 Sin categoría
               </Button>
@@ -150,6 +152,7 @@ export function EditDeadlineModal({
                     boxShadow: selectedCategory === category.id ? `0 0 12px ${category.color}40` : undefined,
                   }}
                   onClick={() => setSelectedCategory(category.id)}
+                  aria-pressed={selectedCategory === category.id}
                 >
                   <span 
                     className="w-2 h-2 rounded-full" 
@@ -163,10 +166,11 @@ export function EditDeadlineModal({
 
           {/* Date */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Fecha límite</label>
+            <label htmlFor="edit-date" className="text-sm font-medium text-muted-foreground">Fecha límite</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
+                  id="edit-date"
                   variant="outline"
                   className="w-full justify-start text-left font-normal h-12"
                 >
@@ -189,10 +193,11 @@ export function EditDeadlineModal({
 
           {/* Time */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Hora límite</label>
+            <label htmlFor="edit-time" className="text-sm font-medium text-muted-foreground">Hora límite</label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                id="edit-time"
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
