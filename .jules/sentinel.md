@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2026-02-07 - [Secret Management]
+**Vulnerability:** The `.env` file containing environment variables was tracked in version control, potentially exposing secrets and encouraging unsafe practices.
+**Learning:** Checking in `.env` files is a common mistake that can lead to catastrophic secret leaks. Once a secret is committed, it's compromised forever unless history is rewritten or keys rotated.
+**Prevention:** Added `.env` and `.env.*` to `.gitignore` and removed the file from git tracking while keeping the local copy. Added `.env.example` to document required variables without exposing values.
