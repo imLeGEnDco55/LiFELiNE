@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2025-05-20 - [Environment Security]
+**Vulnerability:** `.env` file containing Supabase API keys was committed to the repository, exposing project credentials to anyone with access to the codebase.
+**Learning:** Local configuration files are easy to accidentally commit if not explicitly ignored from the start. CI/CD pipelines and local tests often rely on these files, creating friction against removing them.
+**Prevention:** Removed `.env` from git, added it to `.gitignore`, created `.env.example` for safe distribution, and updated test setup to mock environment variables, ensuring tests pass without sensitive files.
