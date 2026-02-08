@@ -42,7 +42,11 @@ npm install
 # o
 bun install
 
-# 4. Iniciar servidor de desarrollo
+# 4. Configurar variables de entorno
+# Copia el archivo de ejemplo y completa las variables
+cp .env.example .env
+
+# 5. Iniciar servidor de desarrollo
 npm run dev
 # o
 bun dev
