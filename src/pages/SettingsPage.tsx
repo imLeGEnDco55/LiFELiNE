@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogOut, Moon, Bell, Shield, ChevronRight, BellRing, BellOff, Clock, Volume2, Vibrate, Cloud, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/providers/AuthProvider';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFeedbackSettings } from '@/hooks/useFeedbackSettings';
@@ -172,7 +173,7 @@ export function SettingsPage() {
                       {/* Master toggle */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium text-sm">Habilitar notificaciones</p>
+                          <Label htmlFor="notifications-enable" className="font-medium text-sm">Habilitar notificaciones</Label>
                           <p className="text-xs text-muted-foreground">
                             {settings.permission === 'denied' 
                               ? 'Bloqueadas en el navegador' 
@@ -181,6 +182,7 @@ export function SettingsPage() {
                           </p>
                         </div>
                         <Switch 
+                          id="notifications-enable"
                           checked={settings.enabled}
                           onCheckedChange={toggleNotifications}
                           disabled={settings.permission === 'denied'}
@@ -196,11 +198,12 @@ export function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4 text-warning" />
                               <div>
-                                <p className="text-sm">24 horas antes</p>
+                                <Label htmlFor="notifications-24h" className="text-sm">24 horas antes</Label>
                                 <p className="text-xs text-muted-foreground">Aviso anticipado</p>
                               </div>
                             </div>
                             <Switch 
+                              id="notifications-24h"
                               checked={settings.notify24h}
                               onCheckedChange={toggle24h}
                             />
@@ -211,11 +214,12 @@ export function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4 text-urgent" />
                               <div>
-                                <p className="text-sm">1 hora antes</p>
+                                <Label htmlFor="notifications-1h" className="text-sm">1 hora antes</Label>
                                 <p className="text-xs text-muted-foreground">Alerta urgente</p>
                               </div>
                             </div>
                             <Switch 
+                              id="notifications-1h"
                               checked={settings.notify1h}
                               onCheckedChange={toggle1h}
                             />
@@ -236,11 +240,12 @@ export function SettingsPage() {
             <div className="flex items-center gap-3">
               <Volume2 className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">Sonido</p>
+                <Label htmlFor="feedback-sound" className="font-medium">Sonido</Label>
                 <p className="text-xs text-muted-foreground">Feedback sonoro al completar</p>
               </div>
             </div>
             <Switch 
+              id="feedback-sound"
               checked={feedbackSettings.soundEnabled}
               onCheckedChange={toggleSound}
             />
@@ -252,11 +257,12 @@ export function SettingsPage() {
             <div className="flex items-center gap-3">
               <Vibrate className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="font-medium">Vibración</p>
+                <Label htmlFor="feedback-haptic" className="font-medium">Vibración</Label>
                 <p className="text-xs text-muted-foreground">Feedback háptico al completar</p>
               </div>
             </div>
             <Switch 
+              id="feedback-haptic"
               checked={feedbackSettings.hapticEnabled}
               onCheckedChange={toggleHaptic}
             />
