@@ -1,37 +1,16 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { useDeadlines } from '@/hooks/useDeadlines';
-import { startOfWeek, addDays, format, parseISO, isSameDay } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { startOfWeek } from 'date-fns';
+import { calculateChartData } from './chartUtils';
 
 export function DailyActivityChart() {
   const { deadlines, focusSessions } = useDeadlines();
 
   const chartData = useMemo(() => {
+    // Optimization: Calculate chart data in O(N+M) instead of O(7*(N+M))
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-    const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
-    return days.map(day => {
-      const completedDeadlines = deadlines.filter(d => {
-        if (!d.completed_at) return false;
-        return isSameDay(parseISO(d.completed_at), day);
-      }).length;
-
-      const focusMinutes = focusSessions
-        .filter(s => {
-          if (!s.completed_at || s.session_type !== 'work') return false;
-          return isSameDay(parseISO(s.started_at), day);
-        })
-        .reduce((acc, s) => acc + s.duration_minutes, 0);
-
-      return {
-        day: format(day, 'EEE', { locale: es }),
-        fullDay: format(day, 'EEEE', { locale: es }),
-        deadlines: completedDeadlines,
-        focus: Math.round(focusMinutes / 25), // Convert to pomodoro sessions
-        isToday: isSameDay(day, new Date()),
-      };
-    });
+    return calculateChartData(deadlines, focusSessions, weekStart);
   }, [deadlines, focusSessions]);
 
   const maxValue = Math.max(
