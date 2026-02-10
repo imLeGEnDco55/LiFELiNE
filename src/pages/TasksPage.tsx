@@ -74,24 +74,37 @@ export function TasksPage() {
   // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
   const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
 
-  // Memoize groupedSubtasks to avoid O(N) processing on every render
-  const groupedSubtasks = useMemo(() => {
+  // Combined memoization: Group pending subtasks and list completed ones in a single O(N) pass
+  // This avoids multiple filter/reduce iterations over the subtasks array
+  const { groupedPendingSubtasks, completedSubtasks, pendingCount } = useMemo(() => {
     const grouped: Record<string, SubtaskWithDeadline[]> = {};
+    const completed: SubtaskWithDeadline[] = [];
+    let count = 0;
+
     subtasks.forEach(subtask => {
+      // Only process if the deadline exists in our current map
       const deadline = deadlineMap.get(subtask.deadline_id);
       if (deadline) {
-        if (!grouped[subtask.deadline_id]) {
-          grouped[subtask.deadline_id] = [];
+        const enhancedSubtask = { ...subtask, deadline };
+
+        if (subtask.completed) {
+          completed.push(enhancedSubtask);
+        } else {
+          if (!grouped[subtask.deadline_id]) {
+            grouped[subtask.deadline_id] = [];
+          }
+          grouped[subtask.deadline_id].push(enhancedSubtask);
+          count++;
         }
-        grouped[subtask.deadline_id].push({ ...subtask, deadline });
       }
     });
-    return grouped;
-  }, [subtasks, deadlineMap]);
 
-  // Memoize derived lists to prevent unnecessary re-filtering
-  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
-  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+    return {
+      groupedPendingSubtasks: grouped,
+      completedSubtasks: completed,
+      pendingCount: count
+    };
+  }, [subtasks, deadlineMap]);
 
   return (
     <div className="px-4 py-6">
@@ -103,7 +116,7 @@ export function TasksPage() {
       >
         <h1 className="text-2xl font-bold">Mis Tareas</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {pendingSubtasks.length} pendientes · {completedSubtasks.length} completadas
+          {pendingCount} pendientes · {completedSubtasks.length} completadas
         </p>
       </motion.header>
 
@@ -113,17 +126,14 @@ export function TasksPage() {
         animate={{ opacity: 1 }}
         className="space-y-4"
       >
-        {Object.entries(groupedSubtasks).map(([deadlineId, tasks]) => {
-          const deadline = deadlineMap.get(deadlineId);
-          if (!deadline) return null;
-
-          const pendingTasks = tasks.filter(t => !t.completed);
-          if (pendingTasks.length === 0) return null;
+        {deadlines.map((deadline) => {
+          const pendingTasks = groupedPendingSubtasks[deadline.id];
+          if (!pendingTasks || pendingTasks.length === 0) return null;
 
           return (
-            <div key={deadlineId} className="space-y-2">
+            <div key={deadline.id} className="space-y-2">
               <button
-                onClick={() => navigate(`/deadline/${deadlineId}`)}
+                onClick={() => navigate(`/deadline/${deadline.id}`)}
                 className="text-sm font-medium text-primary hover:underline flex items-center gap-2"
               >
                 {deadline.title}
@@ -156,7 +166,7 @@ export function TasksPage() {
           );
         })}
 
-        {pendingSubtasks.length === 0 && (
+        {pendingCount === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
               <span className="text-3xl">🎉</span>
