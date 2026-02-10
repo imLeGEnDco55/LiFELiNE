@@ -103,18 +103,33 @@ export function useCloudDeadlines() {
     };
 
     const updateDeadline = async (id: string, updates: Partial<Deadline>) => {
-        const { error } = await supabase.from('deadlines').update(updates).eq('id', id);
+        if (!user) return;
+        // Security: Remove immutable fields to prevent tampering
+        const { id: _id, user_id: _uid, created_at: _cat, ...safeUpdates } = updates;
+
+        const { error } = await supabase.from('deadlines')
+            .update(safeUpdates)
+            .eq('id', id)
+            .eq('user_id', user.id); // Defense in depth: Ensure ownership
+
         if (!error) {
-            setDeadlines(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+            setDeadlines(prev => prev.map(d => d.id === id ? { ...d, ...safeUpdates } : d));
         }
     };
 
     const deleteDeadline = async (id: string) => {
-        await supabase.from('deadlines').delete().eq('id', id);
+        if (!user) return;
+        await supabase.from('deadlines')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id); // Defense in depth
+
         setDeadlines(prev => prev.filter(d => d.id !== id));
     };
 
     const completeDeadline = async (id: string) => {
+        if (!user) return { success: false, reason: 'unauthenticated' };
+
         // Check children first
         const children = deadlines.filter(d => d.parent_id === id);
         if (children.length > 0) {
@@ -140,12 +155,25 @@ export function useCloudDeadlines() {
     };
 
     const updateSubtask = async (id: string, updates: Partial<Subtask>) => {
-        await supabase.from('subtasks').update(updates).eq('id', id);
-        setSubtasks(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+        if (!user) return;
+        // Security: Remove immutable fields
+        const { id: _id, user_id: _uid, created_at: _cat, ...safeUpdates } = updates;
+
+        await supabase.from('subtasks')
+            .update(safeUpdates)
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+        setSubtasks(prev => prev.map(s => s.id === id ? { ...s, ...safeUpdates } : s));
     };
 
     const deleteSubtask = async (id: string) => {
-        await supabase.from('subtasks').delete().eq('id', id);
+        if (!user) return;
+        await supabase.from('subtasks')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
         setSubtasks(prev => prev.filter(s => s.id !== id));
     };
 
@@ -168,12 +196,27 @@ export function useCloudDeadlines() {
     };
 
     const updateCategory = async (id: string, updates: Partial<Category>) => {
-        await supabase.from('categories').update(updates).eq('id', id);
-        setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        if (!user) return;
+
+        // Security: Remove immutable fields
+        const { id: _id, ...safeUpdates } = updates;
+
+        await supabase.from('categories')
+            .update(safeUpdates)
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+        setCategories(prev => prev.map(c => c.id === id ? { ...c, ...safeUpdates } : c));
     };
 
     const deleteCategory = async (id: string) => {
-        await supabase.from('categories').delete().eq('id', id);
+        if (!user) return;
+
+        await supabase.from('categories')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
         setCategories(prev => prev.filter(c => c.id !== id));
     };
 
@@ -190,8 +233,14 @@ export function useCloudDeadlines() {
     };
 
     const completeFocusSession = async (id: string) => {
+        if (!user) return;
         const now = new Date().toISOString();
-        await supabase.from('focus_sessions').update({ completed_at: now }).eq('id', id);
+
+        await supabase.from('focus_sessions')
+            .update({ completed_at: now })
+            .eq('id', id)
+            .eq('user_id', user.id);
+
         setFocusSessions(prev => prev.map(s => s.id === id ? { ...s, completed_at: now } : s));
     };
 
@@ -300,9 +349,13 @@ export function useCloudDeadlines() {
     };
 
     const reorderSubtasks = async (deadlineId: string, reorderedIds: string[]) => {
+        if (!user) return;
         // Update order_index for each subtask in Supabase
         const updates = reorderedIds.map((id, index) =>
-            supabase.from('subtasks').update({ order_index: index }).eq('id', id)
+            supabase.from('subtasks')
+                .update({ order_index: index })
+                .eq('id', id)
+                .eq('user_id', user.id)
         );
 
         const results = await Promise.all(updates);
@@ -327,9 +380,13 @@ export function useCloudDeadlines() {
     };
 
     const reorderCategories = async (reorderedCategories: Category[]) => {
+        if (!user) return;
         // Update order_index for each category in Supabase
         const updates = reorderedCategories.map((cat, index) =>
-            supabase.from('categories').update({ order_index: index }).eq('id', cat.id)
+            supabase.from('categories')
+                .update({ order_index: index })
+                .eq('id', cat.id)
+                .eq('user_id', user.id)
         );
 
         const results = await Promise.all(updates);
