@@ -3,6 +3,11 @@ import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Palette, GripVertical, ChevronRight, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { Category } from '@/types/deadline';
 import { toast } from 'sonner';
@@ -18,6 +23,17 @@ const PRESET_COLORS = [
   'hsl(180, 70%, 50%)',  // Cyan
   'hsl(320, 80%, 60%)',  // Magenta
 ];
+
+const COLOR_LABELS: Record<string, string> = {
+  'hsl(280, 100%, 70%)': 'Púrpura',
+  'hsl(200, 100%, 60%)': 'Azul',
+  'hsl(340, 100%, 65%)': 'Rosa',
+  'hsl(150, 80%, 50%)':  'Verde',
+  'hsl(45, 100%, 55%)':  'Amarillo',
+  'hsl(10, 100%, 60%)':  'Rojo',
+  'hsl(180, 70%, 50%)':  'Cian',
+  'hsl(320, 80%, 60%)':  'Magenta',
+};
 
 export function CategoryManager() {
   const { categories, createCategory, deleteCategory, reorderCategories } = useDeadlines();
@@ -57,6 +73,7 @@ export function CategoryManager() {
       {/* Header - Collapsible trigger */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
         className={cn(
           "w-full flex items-center gap-3 p-0 transition-colors",
           "hover:opacity-80"
@@ -141,6 +158,8 @@ export function CategoryManager() {
                             key={color}
                             type="button"
                             onClick={() => setSelectedColor(color)}
+                            aria-label={`Color ${COLOR_LABELS[color] || 'Personalizado'}`}
+                            aria-pressed={selectedColor === color}
                             className={cn(
                               "w-8 h-8 rounded-full transition-all",
                               selectedColor === color && "ring-2 ring-offset-2 ring-offset-background ring-white scale-110"
@@ -198,14 +217,22 @@ export function CategoryManager() {
                         />
                         <span className="font-medium text-sm">{category.name}</span>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteCategory(category.id, category.name)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                            aria-label={`Eliminar categoría ${category.name}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Eliminar categoría</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </Reorder.Item>
                   ))}
                 </Reorder.Group>
