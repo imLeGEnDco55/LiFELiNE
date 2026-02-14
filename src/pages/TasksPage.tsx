@@ -74,24 +74,33 @@ export function TasksPage() {
   // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
   const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
 
-  // Memoize groupedSubtasks to avoid O(N) processing on every render
-  const groupedSubtasks = useMemo(() => {
-    const grouped: Record<string, SubtaskWithDeadline[]> = {};
+  // Consolidate subtask processing into a single pass O(N) to improve performance
+  const { pendingSubtasks, completedSubtasks, groupedPendingSubtasks } = useMemo(() => {
+    const pending: Subtask[] = [];
+    const completed: Subtask[] = [];
+    const groupedPending: Record<string, SubtaskWithDeadline[]> = {};
+
     subtasks.forEach(subtask => {
       const deadline = deadlineMap.get(subtask.deadline_id);
-      if (deadline) {
-        if (!grouped[subtask.deadline_id]) {
-          grouped[subtask.deadline_id] = [];
+      if (!deadline) return;
+
+      if (subtask.completed) {
+        completed.push(subtask);
+      } else {
+        pending.push(subtask);
+        if (!groupedPending[subtask.deadline_id]) {
+          groupedPending[subtask.deadline_id] = [];
         }
-        grouped[subtask.deadline_id].push({ ...subtask, deadline });
+        groupedPending[subtask.deadline_id].push({ ...subtask, deadline });
       }
     });
-    return grouped;
-  }, [subtasks, deadlineMap]);
 
-  // Memoize derived lists to prevent unnecessary re-filtering
-  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
-  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+    return {
+      pendingSubtasks: pending,
+      completedSubtasks: completed,
+      groupedPendingSubtasks: groupedPending
+    };
+  }, [subtasks, deadlineMap]);
 
   return (
     <div className="px-4 py-6">
@@ -113,12 +122,9 @@ export function TasksPage() {
         animate={{ opacity: 1 }}
         className="space-y-4"
       >
-        {Object.entries(groupedSubtasks).map(([deadlineId, tasks]) => {
+        {Object.entries(groupedPendingSubtasks).map(([deadlineId, pendingTasks]) => {
           const deadline = deadlineMap.get(deadlineId);
           if (!deadline) return null;
-
-          const pendingTasks = tasks.filter(t => !t.completed);
-          if (pendingTasks.length === 0) return null;
 
           return (
             <div key={deadlineId} className="space-y-2">
