@@ -11,8 +11,8 @@ interface AuthContextType {
     loading: boolean;
     mode: AuthMode;
     switchMode: (mode: AuthMode) => void;
-    signIn: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
-    signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
+    signIn: (email: string, password: string, displayName?: string) => Promise<{ error: unknown }>;
+    signUp: (email: string, password: string, displayName?: string) => Promise<{ error: unknown }>;
     signOut: () => Promise<void>;
 }
 

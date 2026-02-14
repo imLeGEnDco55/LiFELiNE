@@ -97,6 +97,7 @@ export function useSync() {
       toast.dismiss(toastId);
       toast.success('Sincronización completada');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Sync error:', error);
       toast.dismiss(toastId);

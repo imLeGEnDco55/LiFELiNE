@@ -37,6 +37,7 @@ export function useFeedback() {
   const playSound = useCallback((type: FeedbackType) => {
     if (!settings.soundEnabled) return;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const notes = SOUNDS[type];
       let startTime = audioContext.currentTime;
