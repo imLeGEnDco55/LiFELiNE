@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2025-05-20 - [Secure Mutation Operations]
+**Vulnerability:** Supabase update and delete operations in `useCloudDeadlines.ts` relied solely on RLS and ID matching, lacking explicit `user_id` checks.
+**Learning:** Defense in Depth requires verifying ownership (`.eq('user_id', user.id)`) on all mutations, not just fetches, to prevent potential IDOR if RLS fails.
+**Prevention:** Updated all CRUD operations to include strict `user_id` filtering and added null checks for authentication state.

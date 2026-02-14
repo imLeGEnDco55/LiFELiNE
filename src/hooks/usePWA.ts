@@ -33,6 +33,7 @@ export function usePWA() {
   useEffect(() => {
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const isIOSStandalone = (navigator as any).standalone === true;
       setIsInstalled(isStandalone || isIOSStandalone);
     };
