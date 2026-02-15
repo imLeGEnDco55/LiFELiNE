@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2026-02-15 - [Mutation Security & Defense in Depth]
+**Vulnerability:** Mutation operations (update/delete) in `useCloudDeadlines` relied solely on ID matching and RLS, without explicit `user_id` filtering on the client side. A misconfigured RLS policy could theoretically allow unauthorized modifications if an attacker guessed an ID.
+**Learning:** Security should be redundant. Adding explicit `user_id` checks to mutation queries provides a second layer of defense (Defense in Depth) and prevents accidental modification of other users' data even if RLS fails.
+**Prevention:** Updated all mutation functions in `useCloudDeadlines.ts` (update, delete, reorder) to include `.eq('user_id', user.id)` and added explicit user existence checks.
