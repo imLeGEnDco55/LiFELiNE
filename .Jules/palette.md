@@ -7,3 +7,7 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+
+## 2026-02-15 - Accessibility for Time Critical Actions
+**Learning:** Icon-only buttons in focus interfaces need clear identification. Providing both aria-labels and tooltips reduces cognitive load and prevents accidental clicks.
+**Action:** Always pair icon-only controls with tooltips that match their accessible name, especially in "Focus Mode" interfaces.
