@@ -4,7 +4,7 @@
 - **Nombre**: LiFELiNE
 - **Tipo**: Progressive Web App (PWA) de gestión de plazos y tareas.
 - **Objetivo**: Ayudar a los usuarios a gestionar sus fechas límite, tareas y enfoque de manera visual y eficiente.
-- **Estado Actual**: PWA desplegada en GitHub Pages. Arquitectura Híbrida (Local vs Cloud) funcional y verificada.
+- **Estado Actual**: PWA desplegada en GitHub Pages. Arquitectura Híbrida (Local vs Cloud) funcional y verificada. Políticas de seguridad reforzadas (contraseñas).
 
 ## 🛠 Tech Stack
 - **Core**: React 18, TypeScript, Vite.

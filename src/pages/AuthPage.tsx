@@ -42,7 +42,7 @@ export function AuthPage() {
     }
 
     if (!isValidPassword(password)) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
+      toast.error('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula y número');
       return;
     }
 
