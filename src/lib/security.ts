@@ -6,6 +6,12 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function isValidPassword(password: string): boolean {
-  // Supabase default is 6 characters
-  return password.length >= 6;
+  // Policy: At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+  if (password.length < 8) return false;
+
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+
+  return hasUpperCase && hasLowerCase && hasNumber;
 }

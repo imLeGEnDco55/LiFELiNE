@@ -20,16 +20,28 @@ describe('Security Utils', () => {
   });
 
   describe('isValidPassword', () => {
-    it('should return true for passwords >= 6 chars', () => {
-      expect(isValidPassword('123456')).toBe(true);
-      expect(isValidPassword('password')).toBe(true);
-      expect(isValidPassword('longerpassword123')).toBe(true);
+    it('should require at least 8 characters', () => {
+      expect(isValidPassword('Pass123')).toBe(false); // 7 chars
+      expect(isValidPassword('Password123')).toBe(true); // > 8 chars
     });
 
-    it('should return false for passwords < 6 chars', () => {
-      expect(isValidPassword('')).toBe(false);
-      expect(isValidPassword('1')).toBe(false);
-      expect(isValidPassword('12345')).toBe(false);
+    it('should require at least one uppercase letter', () => {
+      expect(isValidPassword('password123')).toBe(false);
+      expect(isValidPassword('Password123')).toBe(true);
+    });
+
+    it('should require at least one lowercase letter', () => {
+      expect(isValidPassword('PASSWORD123')).toBe(false);
+      expect(isValidPassword('Password123')).toBe(true);
+    });
+
+    it('should require at least one number', () => {
+      expect(isValidPassword('Password')).toBe(false);
+      expect(isValidPassword('Password123')).toBe(true);
+    });
+
+    it('should allow special characters', () => {
+      expect(isValidPassword('P@ssw0rd!')).toBe(true);
     });
   });
 });
