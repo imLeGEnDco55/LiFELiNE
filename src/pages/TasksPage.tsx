@@ -74,24 +74,30 @@ export function TasksPage() {
   // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
   const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
 
-  // Memoize groupedSubtasks to avoid O(N) processing on every render
-  const groupedSubtasks = useMemo(() => {
+  // Optimization: Consolidate derived state into a single pass O(N) instead of multiple iterations O(3N).
+  // Also pre-groups pending tasks to avoid filtering in the render loop O(Render * M).
+  const { groupedPending, pendingCount, completedList } = useMemo(() => {
     const grouped: Record<string, SubtaskWithDeadline[]> = {};
+    const completed: Subtask[] = [];
+    let pCount = 0;
+
     subtasks.forEach(subtask => {
       const deadline = deadlineMap.get(subtask.deadline_id);
       if (deadline) {
-        if (!grouped[subtask.deadline_id]) {
-          grouped[subtask.deadline_id] = [];
+        if (subtask.completed) {
+          completed.push(subtask);
+        } else {
+          pCount++;
+          if (!grouped[subtask.deadline_id]) {
+            grouped[subtask.deadline_id] = [];
+          }
+          grouped[subtask.deadline_id].push({ ...subtask, deadline });
         }
-        grouped[subtask.deadline_id].push({ ...subtask, deadline });
       }
     });
-    return grouped;
-  }, [subtasks, deadlineMap]);
 
-  // Memoize derived lists to prevent unnecessary re-filtering
-  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
-  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+    return { groupedPending: grouped, pendingCount: pCount, completedList: completed };
+  }, [subtasks, deadlineMap]);
 
   return (
     <div className="px-4 py-6">
@@ -103,7 +109,7 @@ export function TasksPage() {
       >
         <h1 className="text-2xl font-bold">Mis Tareas</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          {pendingSubtasks.length} pendientes · {completedSubtasks.length} completadas
+          {pendingCount} pendientes · {completedList.length} completadas
         </p>
       </motion.header>
 
@@ -113,12 +119,9 @@ export function TasksPage() {
         animate={{ opacity: 1 }}
         className="space-y-4"
       >
-        {Object.entries(groupedSubtasks).map(([deadlineId, tasks]) => {
+        {Object.entries(groupedPending).map(([deadlineId, tasks]) => {
           const deadline = deadlineMap.get(deadlineId);
           if (!deadline) return null;
-
-          const pendingTasks = tasks.filter(t => !t.completed);
-          if (pendingTasks.length === 0) return null;
 
           return (
             <div key={deadlineId} className="space-y-2">
@@ -132,7 +135,7 @@ export function TasksPage() {
                 </span>
               </button>
               
-              {pendingTasks.map((subtask, index) => (
+              {tasks.map((subtask, index) => (
                 <motion.div
                   key={subtask.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -156,7 +159,7 @@ export function TasksPage() {
           );
         })}
 
-        {pendingSubtasks.length === 0 && (
+        {pendingCount === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
               <span className="text-3xl">🎉</span>
@@ -170,7 +173,7 @@ export function TasksPage() {
       </motion.div>
 
       {/* Completed Section */}
-      {completedSubtasks.length > 0 && (
+      {completedList.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -178,10 +181,10 @@ export function TasksPage() {
           className="mt-8"
         >
           <h2 className="text-lg font-semibold mb-3 text-muted-foreground">
-            Completadas ({completedSubtasks.length})
+            Completadas ({completedList.length})
           </h2>
           <div className="space-y-2 opacity-60">
-            {completedSubtasks.slice(0, 5).map((subtask) => (
+            {completedList.slice(0, 5).map((subtask) => (
               <div
                 key={subtask.id}
                 className="flex items-center gap-3 p-3 rounded-lg bg-card/50 border border-border"
