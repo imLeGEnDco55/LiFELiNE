@@ -8,7 +8,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { isValidEmail, isValidPassword } from '@/lib/security';
+import { isValidEmail, isValidPassword, isStrongPassword } from '@/lib/security';
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -41,9 +41,16 @@ export function AuthPage() {
       return;
     }
 
-    if (!isValidPassword(password)) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
-      return;
+    if (isLogin) {
+      if (!isValidPassword(password)) {
+        toast.error('La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+    } else {
+      if (!isStrongPassword(password)) {
+        toast.error('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número');
+        return;
+      }
     }
 
     if (!isLogin && !displayName.trim()) {
