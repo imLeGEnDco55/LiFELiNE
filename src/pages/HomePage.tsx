@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Plus, ListTodo, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResuscitationEffect } from '@/components/vitality/ResuscitationEffect';
 import { HomeFilters, FilterType } from '@/components/home/HomeFilters';
@@ -74,13 +75,21 @@ export function HomePage() {
           <h1 className="text-2xl font-bold text-foreground">
             {greeting}, <span className="text-gradient-primary">{displayName}</span>
           </h1>
-          <Button
-            size="icon"
-            className="gradient-primary glow-primary rounded-full"
-            onClick={() => navigate('/create')}
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                className="gradient-primary glow-primary rounded-full"
+                onClick={() => navigate('/create')}
+                aria-label="Crear nuevo deadline"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Crear nuevo deadline</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </motion.header>
 
