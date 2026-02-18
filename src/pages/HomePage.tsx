@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -22,7 +22,7 @@ export function HomePage() {
   const [activeTab, setActiveTab] = useState<'deadlines' | 'subtasks'>('deadlines');
 
   // Filter logic for deadlines
-  const filteredDeadlines = deadlines.filter((deadline) => {
+  const filteredDeadlines = useMemo(() => deadlines.filter((deadline) => {
     if (selectedCategory && deadline.category_id !== selectedCategory) return false;
     if (deadline.completed_at) return filter === 'all';
 
@@ -41,15 +41,18 @@ export function HomePage() {
       default:
         return true;
     }
-  });
+  }), [deadlines, selectedCategory, filter]);
 
   // Filter subtasks based on parent deadline filters
-  const filteredSubtasksMap: Record<string, typeof subtasksMap[string]> = {};
-  filteredDeadlines.forEach((deadline) => {
-    if (subtasksMap[deadline.id]) {
-      filteredSubtasksMap[deadline.id] = subtasksMap[deadline.id];
-    }
-  });
+  const filteredSubtasksMap = useMemo(() => {
+    const filtered: Record<string, typeof subtasksMap[string]> = {};
+    filteredDeadlines.forEach((deadline) => {
+      if (subtasksMap[deadline.id]) {
+        filtered[deadline.id] = subtasksMap[deadline.id];
+      }
+    });
+    return filtered;
+  }, [filteredDeadlines, subtasksMap]);
 
   const today = new Date();
   const greeting = getGreeting();
