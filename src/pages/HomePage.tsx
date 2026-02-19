@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -22,7 +22,9 @@ export function HomePage() {
   const [activeTab, setActiveTab] = useState<'deadlines' | 'subtasks'>('deadlines');
 
   // Filter logic for deadlines
-  const filteredDeadlines = deadlines.filter((deadline) => {
+  // Optimization: Memoize filtering to prevent O(N) iteration and date calculations on every render.
+  // This is critical as the number of deadlines grows.
+  const filteredDeadlines = useMemo(() => deadlines.filter((deadline) => {
     if (selectedCategory && deadline.category_id !== selectedCategory) return false;
     if (deadline.completed_at) return filter === 'all';
 
@@ -41,15 +43,19 @@ export function HomePage() {
       default:
         return true;
     }
-  });
+  }), [deadlines, selectedCategory, filter]);
 
   // Filter subtasks based on parent deadline filters
-  const filteredSubtasksMap: Record<string, typeof subtasksMap[string]> = {};
-  filteredDeadlines.forEach((deadline) => {
-    if (subtasksMap[deadline.id]) {
-      filteredSubtasksMap[deadline.id] = subtasksMap[deadline.id];
-    }
-  });
+  // Optimization: Memoize map construction to prevent O(M) operations on every render.
+  const filteredSubtasksMap = useMemo(() => {
+    const map: Record<string, typeof subtasksMap[string]> = {};
+    filteredDeadlines.forEach((deadline) => {
+      if (subtasksMap[deadline.id]) {
+        map[deadline.id] = subtasksMap[deadline.id];
+      }
+    });
+    return map;
+  }, [filteredDeadlines, subtasksMap]);
 
   const today = new Date();
   const greeting = getGreeting();
