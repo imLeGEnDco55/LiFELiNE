@@ -238,8 +238,13 @@ export function useLocalDeadlines() {
     [deadlines, focusSessions]
   );
 
+  // Memoize sorted deadlines to prevent state mutation and O(N log N) sorting on every render
+  const sortedDeadlines = useMemo(() => {
+    return [...deadlines].sort((a, b) => new Date(a.deadline_at).getTime() - new Date(b.deadline_at).getTime());
+  }, [deadlines]);
+
   return {
-    deadlines: deadlines.sort((a, b) => new Date(a.deadline_at).getTime() - new Date(b.deadline_at).getTime()),
+    deadlines: sortedDeadlines,
     subtasks,
     categories,
     focusSessions,
