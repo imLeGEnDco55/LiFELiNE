@@ -36,6 +36,7 @@ export function BottomNav() {
                   style={{
                     boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
                   }}
+                  aria-label="Abrir temporizador Pomodoro"
                 >
                   🍅
                 </motion.button>
