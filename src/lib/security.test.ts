@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidEmail, isValidPassword } from './security';
+import { isValidEmail, isValidPassword, isStrongPassword } from './security';
 
 describe('Security Utils', () => {
   describe('isValidEmail', () => {
@@ -30,6 +30,37 @@ describe('Security Utils', () => {
       expect(isValidPassword('')).toBe(false);
       expect(isValidPassword('1')).toBe(false);
       expect(isValidPassword('12345')).toBe(false);
+    });
+  });
+
+  describe('isStrongPassword', () => {
+    it('should validate strong passwords', () => {
+      expect(isStrongPassword('Pass1234').valid).toBe(true);
+      expect(isStrongPassword('StrongP@ssw0rd').valid).toBe(true);
+    });
+
+    it('should fail if too short', () => {
+      const result = isStrongPassword('Pass123'); // 7 chars
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('8 caracteres');
+    });
+
+    it('should fail if missing uppercase', () => {
+      const result = isStrongPassword('pass1234');
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('mayúscula');
+    });
+
+    it('should fail if missing lowercase', () => {
+      const result = isStrongPassword('PASS1234');
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('minúscula');
+    });
+
+    it('should fail if missing number', () => {
+      const result = isStrongPassword('Password');
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('número');
     });
   });
 });
