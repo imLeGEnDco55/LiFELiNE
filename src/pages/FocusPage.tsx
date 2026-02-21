@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Pause, SkipForward, Coffee, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CircularProgress } from '@/components/deadline/CircularProgress';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useFeedback } from '@/hooks/useFeedback';
@@ -120,9 +121,16 @@ export function FocusPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-4 mb-8"
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Volver">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Volver</p>
+          </TooltipContent>
+        </Tooltip>
         <div>
           <h1 className="text-xl font-bold">Modo Focus</h1>
           {deadline && (
@@ -197,29 +205,45 @@ export function FocusPage() {
           <span className="text-xs">Reset</span>
         </Button>
 
-        <Button
-          size="lg"
-          className={cn(
-            "rounded-full w-20 h-20",
-            isRunning ? "bg-destructive hover:bg-destructive/90" : "gradient-primary glow-primary"
-          )}
-          onClick={toggleTimer}
-        >
-          {isRunning ? (
-            <Pause className="w-8 h-8" />
-          ) : (
-            <Play className="w-8 h-8 ml-1" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="lg"
+              className={cn(
+                "rounded-full w-20 h-20",
+                isRunning ? "bg-destructive hover:bg-destructive/90" : "gradient-primary glow-primary"
+              )}
+              onClick={toggleTimer}
+              aria-label={isRunning ? "Pausar sesión" : "Iniciar sesión"}
+            >
+              {isRunning ? (
+                <Pause className="w-8 h-8" />
+              ) : (
+                <Play className="w-8 h-8 ml-1" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isRunning ? "Pausar" : "Iniciar"}</p>
+          </TooltipContent>
+        </Tooltip>
 
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-full w-14 h-14"
-          onClick={skipSession}
-        >
-          <SkipForward className="w-5 h-5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full w-14 h-14"
+              onClick={skipSession}
+              aria-label="Saltar sesión"
+            >
+              <SkipForward className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Saltar</p>
+          </TooltipContent>
+        </Tooltip>
       </motion.div>
     </div>
   );
