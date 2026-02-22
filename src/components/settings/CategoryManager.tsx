@@ -8,21 +8,21 @@ import { Category } from '@/types/deadline';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const PRESET_COLORS = [
-  'hsl(280, 100%, 70%)', // Purple
-  'hsl(200, 100%, 60%)', // Blue
-  'hsl(340, 100%, 65%)', // Pink
-  'hsl(150, 80%, 50%)',  // Green
-  'hsl(45, 100%, 55%)',  // Yellow
-  'hsl(10, 100%, 60%)',  // Red/Orange
-  'hsl(180, 70%, 50%)',  // Cyan
-  'hsl(320, 80%, 60%)',  // Magenta
+const COLOR_OPTIONS = [
+  { value: 'hsl(280, 100%, 70%)', label: 'Púrpura' },
+  { value: 'hsl(200, 100%, 60%)', label: 'Azul' },
+  { value: 'hsl(340, 100%, 65%)', label: 'Rosa' },
+  { value: 'hsl(150, 80%, 50%)',  label: 'Verde' },
+  { value: 'hsl(45, 100%, 55%)',  label: 'Amarillo' },
+  { value: 'hsl(10, 100%, 60%)',  label: 'Naranja' },
+  { value: 'hsl(180, 70%, 50%)',  label: 'Cian' },
+  { value: 'hsl(320, 80%, 60%)',  label: 'Magenta' },
 ];
 
 export function CategoryManager() {
   const { categories, createCategory, deleteCategory, reorderCategories } = useDeadlines();
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
+  const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].value);
   const [showForm, setShowForm] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -57,6 +57,8 @@ export function CategoryManager() {
       {/* Header - Collapsible trigger */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-label={isExpanded ? "Contraer categorías" : "Expandir categorías"}
         className={cn(
           "w-full flex items-center gap-3 p-0 transition-colors",
           "hover:opacity-80"
@@ -124,6 +126,7 @@ export function CategoryManager() {
                   >
                     <Input
                       placeholder="Nombre de la categoría"
+                      aria-label="Nombre de la nueva categoría"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       maxLength={30}
@@ -136,16 +139,19 @@ export function CategoryManager() {
                         Color
                       </label>
                       <div className="flex gap-2 flex-wrap">
-                        {PRESET_COLORS.map((color) => (
+                        {COLOR_OPTIONS.map((color) => (
                           <button
-                            key={color}
+                            key={color.value}
                             type="button"
-                            onClick={() => setSelectedColor(color)}
+                            onClick={() => setSelectedColor(color.value)}
+                            aria-label={`Seleccionar color ${color.label}`}
+                            aria-pressed={selectedColor === color.value}
+                            title={color.label}
                             className={cn(
                               "w-8 h-8 rounded-full transition-all",
-                              selectedColor === color && "ring-2 ring-offset-2 ring-offset-background ring-white scale-110"
+                              selectedColor === color.value && "ring-2 ring-offset-2 ring-offset-background ring-white scale-110"
                             )}
-                            style={{ backgroundColor: color }}
+                            style={{ backgroundColor: color.value }}
                           />
                         ))}
                       </div>
@@ -203,6 +209,7 @@ export function CategoryManager() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         onClick={() => handleDeleteCategory(category.id, category.name)}
+                        aria-label={`Eliminar categoría ${category.name}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

@@ -7,3 +7,7 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+
+## 2026-02-18 - Accessible Color Pickers
+**Learning:** Color selection controls often rely solely on visual cues (background color), making them invisible to screen readers and difficult for mouse users without tooltips.
+**Action:** Map color values to human-readable names and use `aria-label`, `title`, and `aria-pressed` (or `role='radio'`) to communicate color and selection state.
