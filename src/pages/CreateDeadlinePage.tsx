@@ -118,10 +118,12 @@ export function CreateDeadlinePage() {
             <Tag className="w-4 h-4" />
             Categoría
           </label>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label="Categoría">
             <Button
               variant="secondary"
               size="sm"
+              role="radio"
+              aria-checked={selectedCategory === null}
               className={cn(
                 "rounded-full",
                 selectedCategory === null && "ring-2 ring-primary"
@@ -135,6 +137,8 @@ export function CreateDeadlinePage() {
                 key={category.id}
                 variant="secondary"
                 size="sm"
+                role="radio"
+                aria-checked={selectedCategory === category.id}
                 className="rounded-full gap-1.5"
                 style={{
                   backgroundColor: selectedCategory === category.id ? category.color : undefined,
@@ -160,21 +164,25 @@ export function CreateDeadlinePage() {
             Fecha límite
           </label>
           <div className="flex gap-2">
-            {quickDates.map(({ label, getValue }) => (
-              <Button
-                key={label}
-                variant="secondary"
-                size="sm"
-                className={cn(
-                  "flex-1 rounded-full",
-                  selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(getValue(), 'yyyy-MM-dd') && 
-                  "gradient-primary text-primary-foreground"
-                )}
-                onClick={() => setSelectedDate(getValue())}
-              >
-                {label}
-              </Button>
-            ))}
+            {quickDates.map(({ label, getValue }) => {
+              const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(getValue(), 'yyyy-MM-dd');
+              return (
+                <Button
+                  key={label}
+                  variant="secondary"
+                  size="sm"
+                  aria-pressed={!!isSelected}
+                  className={cn(
+                    "flex-1 rounded-full",
+                    isSelected &&
+                    "gradient-primary text-primary-foreground"
+                  )}
+                  onClick={() => setSelectedDate(getValue())}
+                >
+                  {label}
+                </Button>
+              );
+            })}
           </div>
           
           {/* Custom Date */}
@@ -230,11 +238,13 @@ export function CreateDeadlinePage() {
             <Flag className="w-4 h-4" />
             Prioridad
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="radiogroup" aria-label="Prioridad">
             {priorities.map(({ value, label, color }) => (
               <Button
                 key={value}
                 variant="secondary"
+                role="radio"
+                aria-checked={priority === value}
                 className={cn(
                   "flex-1 h-12 relative overflow-hidden",
                   priority === value && "ring-2 ring-primary"
