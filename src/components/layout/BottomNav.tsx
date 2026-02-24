@@ -26,6 +26,7 @@ export function BottomNav() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label="Temporizador Pomodoro"
                   className={cn(
                     "relative flex items-center justify-center w-14 h-14 -mt-5",
                     "rounded-full",
