@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom";
 
+// Mock matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
@@ -13,3 +14,10 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// Mock ResizeObserver
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
