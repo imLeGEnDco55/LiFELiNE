@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -11,17 +11,13 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
-  // Use ref to always have access to latest value without re-creating callback
-  const storedValueRef = useRef(storedValue);
-  useEffect(() => {
-    storedValueRef.current = storedValue;
-  }, [storedValue]);
-
   const setValue = useCallback((value: T | ((val: T) => T)) => {
     try {
-      const valueToStore = value instanceof Function ? value(storedValueRef.current) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      setStoredValue((current) => {
+        const valueToStore = value instanceof Function ? value(current) : value;
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        return valueToStore;
+      });
     } catch (error) {
       console.error(`Error setting localStorage key "${key}":`, error);
     }
