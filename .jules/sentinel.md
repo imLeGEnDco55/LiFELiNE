@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2025-02-18 - [Local vs Cloud Security]
+**Vulnerability:** Local authentication (`useLocalAuth`) accepts any password and doesn't validate it against stored credentials (it just sets the user).
+**Learning:** The "Local" mode is designed for zero-friction offline usage, effectively bypassing authentication. Security controls must be enforced client-side (like password strength) to encourage good habits even if the backend (local storage) doesn't enforce them.
+**Prevention:** Enforced strict password policies in `AuthPage` for new account creation, regardless of mode, to establish a baseline of security hygiene.
