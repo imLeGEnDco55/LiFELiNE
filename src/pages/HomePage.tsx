@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -22,34 +22,44 @@ export function HomePage() {
   const [activeTab, setActiveTab] = useState<'deadlines' | 'subtasks'>('deadlines');
 
   // Filter logic for deadlines
-  const filteredDeadlines = deadlines.filter((deadline) => {
-    if (selectedCategory && deadline.category_id !== selectedCategory) return false;
-    if (deadline.completed_at) return filter === 'all';
-
+  // Optimization: Memoize filtering to prevent O(N) calculations on every render
+  // and move Date instantiation outside the loop
+  const filteredDeadlines = useMemo(() => {
     const now = new Date();
-    const deadlineDate = new Date(deadline.deadline_at);
-    const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-    const daysUntil = hoursUntil / 24;
+    const nowTime = now.getTime();
 
-    switch (filter) {
-      case 'urgent':
-        return hoursUntil < 24;
-      case 'week':
-        return daysUntil <= 7 && daysUntil > 1;
-      case 'later':
-        return daysUntil > 7;
-      default:
-        return true;
-    }
-  });
+    return deadlines.filter((deadline) => {
+      if (selectedCategory && deadline.category_id !== selectedCategory) return false;
+      if (deadline.completed_at) return filter === 'all';
+
+      const deadlineDate = new Date(deadline.deadline_at);
+      const hoursUntil = (deadlineDate.getTime() - nowTime) / (1000 * 60 * 60);
+      const daysUntil = hoursUntil / 24;
+
+      switch (filter) {
+        case 'urgent':
+          return hoursUntil < 24;
+        case 'week':
+          return daysUntil <= 7 && daysUntil > 1;
+        case 'later':
+          return daysUntil > 7;
+        default:
+          return true;
+      }
+    });
+  }, [deadlines, filter, selectedCategory]);
 
   // Filter subtasks based on parent deadline filters
-  const filteredSubtasksMap: Record<string, typeof subtasksMap[string]> = {};
-  filteredDeadlines.forEach((deadline) => {
-    if (subtasksMap[deadline.id]) {
-      filteredSubtasksMap[deadline.id] = subtasksMap[deadline.id];
-    }
-  });
+  // Optimization: Memoize subtask filtering to avoid O(N) map reconstruction
+  const filteredSubtasksMap = useMemo(() => {
+    const map: Record<string, typeof subtasksMap[string]> = {};
+    filteredDeadlines.forEach((deadline) => {
+      if (subtasksMap[deadline.id]) {
+        map[deadline.id] = subtasksMap[deadline.id];
+      }
+    });
+    return map;
+  }, [filteredDeadlines, subtasksMap]);
 
   const today = new Date();
   const greeting = getGreeting();
