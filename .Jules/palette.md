@@ -7,3 +7,7 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+
+## 2026-02-25 - Selection Group Accessibility
+**Learning:** Standard buttons used for selection groups (like categories/priorities) are inaccessible without `role='radiogroup'` and `aria-checked`.
+**Action:** When using buttons for single-select groups, always wrap them in `role='radiogroup'` and use `aria-checked` on the buttons.

@@ -114,14 +114,20 @@ export function CreateDeadlinePage() {
 
         {/* Category Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2" id="category-label">
             <Tag className="w-4 h-4" />
             Categoría
           </label>
-          <div className="flex gap-2 flex-wrap">
+          <div
+            className="flex gap-2 flex-wrap"
+            role="radiogroup"
+            aria-labelledby="category-label"
+          >
             <Button
               variant="secondary"
               size="sm"
+              role="radio"
+              aria-checked={selectedCategory === null}
               className={cn(
                 "rounded-full",
                 selectedCategory === null && "ring-2 ring-primary"
@@ -135,6 +141,8 @@ export function CreateDeadlinePage() {
                 key={category.id}
                 variant="secondary"
                 size="sm"
+                role="radio"
+                aria-checked={selectedCategory === category.id}
                 className="rounded-full gap-1.5"
                 style={{
                   backgroundColor: selectedCategory === category.id ? category.color : undefined,
@@ -210,12 +218,13 @@ export function CreateDeadlinePage() {
 
         {/* Time Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+          <label htmlFor="time-input" className="text-sm font-medium text-muted-foreground">
             Hora límite
           </label>
           <div className="relative">
             <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
+              id="time-input"
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
@@ -226,15 +235,21 @@ export function CreateDeadlinePage() {
 
         {/* Priority Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground flex items-center gap-2" id="priority-label">
             <Flag className="w-4 h-4" />
             Prioridad
           </label>
-          <div className="flex gap-2">
+          <div
+            className="flex gap-2"
+            role="radiogroup"
+            aria-labelledby="priority-label"
+          >
             {priorities.map(({ value, label, color }) => (
               <Button
                 key={value}
                 variant="secondary"
+                role="radio"
+                aria-checked={priority === value}
                 className={cn(
                   "flex-1 h-12 relative overflow-hidden",
                   priority === value && "ring-2 ring-primary"
