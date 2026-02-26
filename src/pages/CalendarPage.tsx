@@ -4,6 +4,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DeadlineCard } from '@/components/deadline/DeadlineCard';
 import { HealthIndicator } from '@/components/vitality/HealthIndicator';
 import { useDeadlines } from '@/hooks/useDeadlines';
@@ -50,23 +51,41 @@ export function CalendarPage() {
             <h1 className="text-2xl font-bold">Historial Médico</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                  aria-label="Mes anterior"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Mes anterior</p>
+              </TooltipContent>
+            </Tooltip>
+
             <span className="font-semibold min-w-[140px] text-center">
               {format(currentMonth, 'MMMM yyyy', { locale: es })}
             </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                  aria-label="Mes siguiente"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Mes siguiente</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1">

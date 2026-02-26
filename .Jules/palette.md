@@ -7,3 +7,6 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+## 2026-02-13 - Accessible Icon-Only Navigation
+**Learning:** Icon-only buttons (like Floating Action Buttons) are visually appealing but often lack screen reader support (`aria-label`) and mouse-hover context (tooltips), especially when using animation libraries like `framer-motion`.
+**Action:** Always wrap icon-only buttons in `Tooltip` components and ensure `aria-label` is present. Use `asChild` for `TooltipTrigger` when wrapping custom components to maintain accessibility without breaking layout.

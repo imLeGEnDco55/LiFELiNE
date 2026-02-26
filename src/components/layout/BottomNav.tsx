@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { PomodoroDrawer } from '@/components/focus/PomodoroDrawer';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const navItems = [
   { icon: Home, label: 'Inicio', path: '/' },
@@ -23,22 +24,30 @@ export function BottomNav() {
           if ('type' in item && item.type === 'pomodoro') {
             return (
               <PomodoroDrawer key="pomodoro">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    "relative flex items-center justify-center w-14 h-14 -mt-5",
-                    "rounded-full",
-                    "bg-gradient-to-br from-red-500 to-orange-500",
-                    "shadow-lg",
-                    "text-2xl"
-                  )}
-                  style={{
-                    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
-                  }}
-                >
-                  🍅
-                </motion.button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.button
+                      aria-label="Temporizador Pomodoro"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={cn(
+                        "relative flex items-center justify-center w-14 h-14 -mt-5",
+                        "rounded-full",
+                        "bg-gradient-to-br from-red-500 to-orange-500",
+                        "shadow-lg",
+                        "text-2xl"
+                      )}
+                      style={{
+                        boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+                      }}
+                    >
+                      🍅
+                    </motion.button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>Temporizador Pomodoro</p>
+                  </TooltipContent>
+                </Tooltip>
               </PomodoroDrawer>
             );
           }
