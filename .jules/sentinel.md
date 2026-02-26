@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2025-05-20 - [Password Policy Enforcement]
+**Vulnerability:** Weak password requirements for new accounts (6 characters, no complexity).
+**Learning:** Enhancing security policies (like password strength) must account for legacy users. Applying strict rules retroactively on login can lock out existing users. Separate validation logic is needed for "Sign Up" vs "Sign In" flows.
+**Prevention:** Implemented `isStrongPassword` with complexity checks (8 chars, upper, lower, number) for new registrations only, while maintaining legacy support for existing users.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidEmail, isValidPassword } from './security';
+import { isValidEmail, isValidPassword, isStrongPassword } from './security';
 
 describe('Security Utils', () => {
   describe('isValidEmail', () => {
@@ -30,6 +30,41 @@ describe('Security Utils', () => {
       expect(isValidPassword('')).toBe(false);
       expect(isValidPassword('1')).toBe(false);
       expect(isValidPassword('12345')).toBe(false);
+    });
+  });
+
+  describe('isStrongPassword', () => {
+    it('should return valid for strong passwords', () => {
+      expect(isStrongPassword('StrongPass1')).toEqual({ valid: true });
+      expect(isStrongPassword('Another1GoodOne')).toEqual({ valid: true });
+    });
+
+    it('should return invalid for short passwords', () => {
+      expect(isStrongPassword('Weak1')).toEqual({
+        valid: false,
+        message: 'La contraseña debe tener al menos 8 caracteres.'
+      });
+    });
+
+    it('should return invalid if missing uppercase', () => {
+      expect(isStrongPassword('weakpass1')).toEqual({
+        valid: false,
+        message: 'La contraseña debe incluir al menos una mayúscula.'
+      });
+    });
+
+    it('should return invalid if missing lowercase', () => {
+      expect(isStrongPassword('WEAKPASS1')).toEqual({
+        valid: false,
+        message: 'La contraseña debe incluir al menos una minúscula.'
+      });
+    });
+
+    it('should return invalid if missing number', () => {
+      expect(isStrongPassword('WeakPassNoNum')).toEqual({
+        valid: false,
+        message: 'La contraseña debe incluir al menos un número.'
+      });
     });
   });
 });
