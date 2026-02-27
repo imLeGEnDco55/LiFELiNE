@@ -24,6 +24,7 @@ export function BottomNav() {
             return (
               <PomodoroDrawer key="pomodoro">
                 <motion.button
+                  aria-label="Temporizador Pomodoro"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={cn(

@@ -120,7 +120,12 @@ export function FocusPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-4 mb-8"
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          aria-label="Volver atrás"
+        >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
@@ -193,6 +198,7 @@ export function FocusPage() {
           size="lg"
           className="rounded-full w-14 h-14"
           onClick={resetTimer}
+          aria-label="Reiniciar temporizador"
         >
           <span className="text-xs">Reset</span>
         </Button>
@@ -204,6 +210,7 @@ export function FocusPage() {
             isRunning ? "bg-destructive hover:bg-destructive/90" : "gradient-primary glow-primary"
           )}
           onClick={toggleTimer}
+          aria-label={isRunning ? "Pausar sesión" : "Iniciar sesión"}
         >
           {isRunning ? (
             <Pause className="w-8 h-8" />
@@ -217,6 +224,7 @@ export function FocusPage() {
           size="lg"
           className="rounded-full w-14 h-14"
           onClick={skipSession}
+          aria-label="Saltar sesión"
         >
           <SkipForward className="w-5 h-5" />
         </Button>

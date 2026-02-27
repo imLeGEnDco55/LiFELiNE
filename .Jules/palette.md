@@ -7,3 +7,7 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+
+## 2026-02-18 - Animated Buttons and Accessibility
+**Learning:** Complex animated components (like `motion.button` in Framer Motion) acting as primary navigation actions (e.g., the floating Pomodoro button) often get overlooked for standard accessibility attributes because they aren't standard HTML elements. They require explicit `aria-label` props just like native buttons.
+**Action:** When implementing custom animated interactions for primary actions, explicitly verify screen reader announcements by adding `aria-label` to the motion component.
