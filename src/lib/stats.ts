@@ -91,32 +91,28 @@ export function calculateStreakStats(
         }
     });
 
-    // Sort dates descending
-    const sortedDates = Array.from(activityDates)
-        .map(d => new Date(d))
-        .sort((a, b) => b.getTime() - a.getTime());
-
-    if (sortedDates.length === 0) {
+    if (activityDates.size === 0) {
         return { currentStreak: 0, longestStreak: 0, todayActive: false };
     }
 
     const today = startOfDay(new Date());
     const yesterday = subDays(today, 1);
 
-    // Check if today has activity
-    const todayActive = sortedDates.some(d => isSameDay(d, today));
+    // Check if today has activity (O(1) lookup)
+    const todayActive = activityDates.has(today.toISOString());
 
     // Calculate current streak
     let currentStreak = 0;
     let checkDate = todayActive ? today : yesterday;
 
     // If no activity today or yesterday, streak is 0
-    if (!todayActive && !sortedDates.some(d => isSameDay(d, yesterday))) {
+    // O(1) lookup for yesterday
+    if (!todayActive && !activityDates.has(yesterday.toISOString())) {
         currentStreak = 0;
     } else {
+        // O(K) loop with O(1) lookup inside, instead of O(K * N)
         for (let i = 0; i < 365; i++) {
-            const hasActivity = sortedDates.some(d => isSameDay(d, checkDate));
-            if (hasActivity) {
+            if (activityDates.has(checkDate.toISOString())) {
                 currentStreak++;
                 checkDate = subDays(checkDate, 1);
             } else {
@@ -126,14 +122,16 @@ export function calculateStreakStats(
     }
 
     // Calculate longest streak
+    // We still need sorted dates for longest streak calculation
+    const sortedDates = Array.from(activityDates)
+        .map(d => new Date(d))
+        .sort((a, b) => a.getTime() - b.getTime()); // Ascending
+
     let longestStreak = 0;
     let tempStreak = 0;
     let prevDate: Date | null = null;
 
-    // Sort ascending for longest streak calculation
-    const ascendingDates = [...sortedDates].sort((a, b) => a.getTime() - b.getTime());
-
-    ascendingDates.forEach(date => {
+    sortedDates.forEach(date => {
         if (prevDate === null) {
             tempStreak = 1;
         } else {
