@@ -58,10 +58,12 @@ export function TasksPage() {
 
   const toggleSubtaskMutation = useMutation({
     mutationFn: async ({ subtaskId, completed }: { subtaskId: string; completed: boolean }) => {
+      if (!user) throw new Error("No user logged in");
       const { error } = await supabase
         .from('subtasks')
         .update({ completed })
-        .eq('id', subtaskId);
+        .eq('id', subtaskId)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => {
