@@ -108,8 +108,9 @@ export function EditDeadlineModal({
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Título</label>
+            <label htmlFor="edit-title" className="text-sm font-medium text-muted-foreground">Título</label>
             <Input
+              id="edit-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="h-12 bg-card"
@@ -189,10 +190,11 @@ export function EditDeadlineModal({
 
           {/* Time */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">Hora límite</label>
+            <label htmlFor="edit-time" className="text-sm font-medium text-muted-foreground">Hora límite</label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
+                id="edit-time"
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
