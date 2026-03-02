@@ -5,3 +5,7 @@
 ## 2024-05-24 - Supabase Relational Filtering
 **Learning:** Supabase/PostgREST queries filtering on joined tables (e.g., filtering subtasks by parent deadline status) default to LEFT JOIN behavior unless `!inner` is specified in the select clause (e.g., `select('*, deadline!inner(*)')`). Without `!inner`, filtering the parent returns null for the parent object but keeps the child row, failing to filter the child list itself server-side.
 **Action:** Use `!inner` hints in Supabase select clauses when the goal is to filter the primary table based on conditions in the related table to ensure server-side payload reduction.
+
+## 2024-03-02 - Page-Level Filter Optimization
+**Learning:** Instantiating `new Date()` inside iterative operations like `.filter()` or `.map()` (such as within `HomePage.tsx`) creates severe memory and processing overhead. Additionally, un-memoized derived state calculations in page components cause unnecessary re-renders of large child components like lists.
+**Action:** Always hoist date object instantiation (`new Date().getTime()`) outside of iteration loops. Wrap derived complex data (like filtering large lists) with `useMemo` in parent components to maintain referential equality and optimize rendering flow.
