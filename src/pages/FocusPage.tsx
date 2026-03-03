@@ -120,7 +120,7 @@ export function FocusPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-4 mb-8"
       >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Volver atrás">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>

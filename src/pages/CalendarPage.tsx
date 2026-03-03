@@ -54,6 +54,7 @@ export function CalendarPage() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+              aria-label="Mes anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -64,6 +65,7 @@ export function CalendarPage() {
               variant="ghost"
               size="icon"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              aria-label="Mes siguiente"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>

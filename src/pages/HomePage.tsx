@@ -78,6 +78,7 @@ export function HomePage() {
             size="icon"
             className="gradient-primary glow-primary rounded-full"
             onClick={() => navigate('/create')}
+            aria-label="Crear nuevo deadline"
           >
             <Plus className="w-5 h-5" />
           </Button>

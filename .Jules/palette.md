@@ -7,3 +7,6 @@
 ## 2026-02-04 - Form Label Association
 **Learning:** Visible text labels adjacent to inputs are often not programmatically associated, breaking click-to-focus and screen reader context.
 **Action:** Use `htmlFor` on labels matching the `id` of the input to ensure proper association and improve click target size.
+## 2024-03-24 - Accessibility Labels for Icon-Only Buttons
+**Learning:** Found multiple instances of icon-only buttons across the app without `aria-label` attributes.
+**Action:** Always ensure `aria-label` is provided for accessibility when using `Button` with `size="icon"`. This is particularly important for primary actions like "Create Deadline" on the Home page, as screen readers otherwise have no context.
