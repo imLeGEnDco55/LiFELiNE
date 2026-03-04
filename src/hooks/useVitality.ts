@@ -28,91 +28,82 @@ export function useVitality(): VitalityData {
     const today = startOfDay(now);
     const yesterday = subDays(today, 1);
 
-    // === 1. ACTIVITY TRACKING ===
+    let lastActivityDateStr = '';
     
-    // Last activity date
-    let lastActivityDate: Date | null = null;
-    deadlines.forEach(d => {
-      if (d.completed_at) {
-        const date = parseISO(d.completed_at);
-        if (!lastActivityDate || date > lastActivityDate) {
-          lastActivityDate = date;
-        }
-      }
-    });
-    focusSessions.forEach(s => {
-      if (s.completed_at) {
-        const date = parseISO(s.completed_at);
-        if (!lastActivityDate || date > lastActivityDate) {
-          lastActivityDate = date;
-        }
-      }
-    });
+    let overdueCount = 0;
+    let scheduledTodayCount = 0;
+    let completedToday = 0;
+    let completedRecently = 0;
+    let completedYesterday = 0;
+    let totalThisWeek = 0;
 
+    // Single-pass iteration over deadlines
+    for (const d of deadlines) {
+      if (d.completed_at) {
+        if (d.completed_at > lastActivityDateStr) {
+          lastActivityDateStr = d.completed_at;
+        }
+
+        const completedDateStart = startOfDay(parseISO(d.completed_at));
+
+        if (isSameDay(completedDateStart, today)) {
+          completedToday++;
+        } else if (isSameDay(completedDateStart, yesterday)) {
+          completedYesterday++;
+        }
+
+        if (differenceInDays(today, completedDateStart) <= 7) {
+          completedRecently++;
+        }
+
+        totalThisWeek++;
+      } else {
+        const deadlineDate = parseISO(d.deadline_at);
+
+        if (deadlineDate < now) {
+          overdueCount++;
+        }
+
+        const deadlineDateStart = startOfDay(deadlineDate);
+
+        if (isSameDay(deadlineDateStart, today) || isAfter(today, deadlineDateStart)) {
+          scheduledTodayCount++;
+        }
+
+        if (differenceInDays(today, deadlineDateStart) <= 7) {
+          totalThisWeek++;
+        }
+      }
+    }
+
+    let focusMinutesToday = 0;
+    let focusMinutesYesterday = 0;
+
+    // Single-pass iteration over focus sessions
+    for (const s of focusSessions) {
+      if (s.completed_at) {
+        if (s.completed_at > lastActivityDateStr) {
+          lastActivityDateStr = s.completed_at;
+        }
+
+        if (s.session_type === 'work') {
+          const startedDateStart = startOfDay(parseISO(s.started_at));
+          if (isSameDay(startedDateStart, today)) {
+            focusMinutesToday += s.duration_minutes;
+          } else if (isSameDay(startedDateStart, yesterday)) {
+            focusMinutesYesterday += s.duration_minutes;
+          }
+        }
+      }
+    }
+
+    const lastActivityDate = lastActivityDateStr ? parseISO(lastActivityDateStr) : null;
     const daysSinceActivity = lastActivityDate 
       ? differenceInDays(today, startOfDay(lastActivityDate))
       : 999;
 
-    // === 2. TASK METRICS ===
-    
-    // Active (non-completed) deadlines
-    const activeDeadlines = deadlines.filter(d => !d.completed_at);
-    
-    // Overdue count
-    const overdueCount = activeDeadlines.filter(d => parseISO(d.deadline_at) < now).length;
-    
-    // Today's scheduled tasks (deadline is today or overdue)
-    const scheduledToday = deadlines.filter(d => {
-      const deadlineDate = startOfDay(parseISO(d.deadline_at));
-      return isSameDay(deadlineDate, today) || isAfter(today, deadlineDate);
-    });
-    const hasScheduledTasksToday = scheduledToday.length > 0;
-    
-    // Completed today
-    const completedToday = deadlines.filter(d => {
-      if (!d.completed_at) return false;
-      return isSameDay(startOfDay(parseISO(d.completed_at)), today);
-    }).length;
-
-    // Completed in last 7 days
-    const completedRecently = deadlines.filter(d => {
-      if (!d.completed_at) return false;
-      const completedDate = parseISO(d.completed_at);
-      return differenceInDays(today, startOfDay(completedDate)) <= 7;
-    }).length;
-
-    // Completed yesterday (for momentum)
-    const completedYesterday = deadlines.filter(d => {
-      if (!d.completed_at) return false;
-      return isSameDay(startOfDay(parseISO(d.completed_at)), yesterday);
-    }).length;
-
-    // Completion ratio (completed vs total this week)
-    const totalThisWeek = deadlines.filter(d => {
-      const deadlineDate = parseISO(d.deadline_at);
-      return differenceInDays(today, startOfDay(deadlineDate)) <= 7 || d.completed_at;
-    }).length;
+    const hasScheduledTasksToday = scheduledTodayCount > 0;
     const completionRatio = totalThisWeek > 0 ? completedRecently / totalThisWeek : 1;
-
-    // === 3. FOCUS SESSION METRICS ===
-    
-    // Focus minutes today
-    const focusMinutesToday = focusSessions
-      .filter(s => {
-        if (!s.completed_at || s.session_type !== 'work') return false;
-        return isSameDay(startOfDay(parseISO(s.started_at)), today);
-      })
-      .reduce((acc, s) => acc + s.duration_minutes, 0);
-
-    // Focus minutes yesterday
-    const focusMinutesYesterday = focusSessions
-      .filter(s => {
-        if (!s.completed_at || s.session_type !== 'work') return false;
-        return isSameDay(startOfDay(parseISO(s.started_at)), yesterday);
-      })
-      .reduce((acc, s) => acc + s.duration_minutes, 0);
-
-    // === 4. STREAK ===
     const streakDays = streakStats.currentStreak;
 
     // === 5. CALCULATE VITALITY SCORE ===
