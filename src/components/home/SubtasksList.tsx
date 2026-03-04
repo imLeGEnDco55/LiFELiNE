@@ -66,6 +66,7 @@ export function SubtasksList({
             <button
               onClick={() => onDeadlineClick(deadline.id)}
               className="w-full px-4 py-3 flex items-center justify-between bg-secondary/50 hover:bg-secondary/70 transition-colors"
+              aria-label={`Ver detalles de ${deadline.title}`}
             >
               <div className="flex items-center gap-2">
                 {category && (
@@ -99,6 +100,7 @@ export function SubtasksList({
                     <button
                       onClick={() => onToggleSubtask(subtask.id)}
                       className="shrink-0"
+                      aria-label={subtask.completed ? `Marcar ${subtask.title} como incompleta` : `Marcar ${subtask.title} como completa`}
                     >
                       {subtask.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-success" />
