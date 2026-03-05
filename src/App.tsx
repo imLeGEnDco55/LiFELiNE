@@ -1,12 +1,11 @@
-import { useState, useEffect, Suspense, lazy } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useEffect, Suspense, lazy } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { SplashScreen } from "@/components/pwa/SplashScreen";
+
 import { useSync } from "@/hooks/useSync";
 
 // Lazy-loaded pages for code splitting
@@ -79,26 +78,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    // Auto-hide splash after animation completes
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Sonner />
 
         <AuthProvider>
-          <AnimatePresence>
-            {showSplash && <SplashScreen />}
-          </AnimatePresence>
 
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Suspense fallback={<PageLoader />}>
