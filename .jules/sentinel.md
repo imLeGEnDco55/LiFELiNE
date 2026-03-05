@@ -12,3 +12,8 @@
 **Vulnerability:** Weak input validation on authentication forms and PII exposure in console logs.
 **Learning:** Client-side validation is the first line of defense against bad data and improves user feedback. Operational logs can inadvertently leak sensitive context (like User IDs) if not pruned for production.
 **Prevention:** Implemented `isValidEmail` and `isValidPassword` checks in `AuthPage`. Removed `user.id` logging from `useCloudDeadlines`.
+
+## 2026-03-04 - [IDOR Protection in Client Mutations]
+**Vulnerability:** Insecure Direct Object Reference (IDOR). Client-side update and delete mutations relied solely on Row Level Security (RLS) policies by passing only the entity ID. If RLS were misconfigured, an authenticated user could modify or delete records belonging to others by passing arbitrary IDs.
+**Learning:** Relying solely on RLS for mutation scoping is risky. Defense in Depth requires the client explicitly restrict mutations to the authenticated user's scope.
+**Prevention:** Added `.eq('user_id', user.id)` to all `supabase.from(...).update()` and `.delete()` calls in `useCloudDeadlines.ts`, alongside early returns checking `if (!user) return;`.
