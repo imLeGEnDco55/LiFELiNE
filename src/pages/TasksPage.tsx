@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { Subtask, Deadline } from '@/types/deadline';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -16,68 +14,30 @@ interface SubtaskWithDeadline extends Subtask {
 
 export function TasksPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { deadlines, subtasks, toggleSubtask } = useDeadlines();
 
-  const { data: deadlines = [] } = useQuery({
-    queryKey: ['deadlines', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('deadlines')
-        .select('*')
-        .eq('user_id', user.id)
-        .is('completed_at', null)
-        .order('deadline_at', { ascending: true });
-      if (error) throw error;
-      return data as Deadline[];
-    },
-    enabled: !!user,
-  });
+  // Only active (non-completed) deadlines
+  const activeDeadlines = useMemo(
+    () => deadlines.filter(d => !d.completed_at),
+    [deadlines]
+  );
 
-  const { data: subtasks = [] } = useQuery({
-    queryKey: ['all-subtasks', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      // Optimization: Filter out subtasks from completed deadlines at the DB level
-      // This reduces payload size by excluding historical data that isn't displayed
-      const { data, error } = await supabase
-        .from('subtasks')
-        .select('*, deadline:deadlines!inner(id)')
-        .eq('user_id', user.id)
-        .is('deadline.completed_at', null)
-        .order('created_at', { ascending: true });
+  // Memoize deadlineMap for O(1) lookups
+  const deadlineMap = useMemo(
+    () => new Map(activeDeadlines.map(d => [d.id, d])),
+    [activeDeadlines]
+  );
 
-      if (error) throw error;
-
-      // Strip the joined deadline object to match Subtask type
-      return data.map(({ deadline, ...rest }) => rest) as Subtask[];
-    },
-    enabled: !!user,
-  });
-
-  const toggleSubtaskMutation = useMutation({
-    mutationFn: async ({ subtaskId, completed }: { subtaskId: string; completed: boolean }) => {
-      const { error } = await supabase
-        .from('subtasks')
-        .update({ completed })
-        .eq('id', subtaskId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['all-subtasks'] });
-      queryClient.invalidateQueries({ queryKey: ['subtasks'] });
-    },
-  });
+  // Only subtasks belonging to active deadlines
+  const relevantSubtasks = useMemo(
+    () => subtasks.filter(s => deadlineMap.has(s.deadline_id)),
+    [subtasks, deadlineMap]
+  );
 
   // Group subtasks by deadline
-  // Memoize deadlineMap to prevent re-creation on every render, ensuring O(1) lookups
-  const deadlineMap = useMemo(() => new Map(deadlines.map(d => [d.id, d])), [deadlines]);
-
-  // Memoize groupedSubtasks to avoid O(N) processing on every render
   const groupedSubtasks = useMemo(() => {
     const grouped: Record<string, SubtaskWithDeadline[]> = {};
-    subtasks.forEach(subtask => {
+    relevantSubtasks.forEach(subtask => {
       const deadline = deadlineMap.get(subtask.deadline_id);
       if (deadline) {
         if (!grouped[subtask.deadline_id]) {
@@ -87,11 +47,16 @@ export function TasksPage() {
       }
     });
     return grouped;
-  }, [subtasks, deadlineMap]);
+  }, [relevantSubtasks, deadlineMap]);
 
-  // Memoize derived lists to prevent unnecessary re-filtering
-  const pendingSubtasks = useMemo(() => subtasks.filter(s => !s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
-  const completedSubtasks = useMemo(() => subtasks.filter(s => s.completed && deadlineMap.has(s.deadline_id)), [subtasks, deadlineMap]);
+  const pendingSubtasks = useMemo(
+    () => relevantSubtasks.filter(s => !s.completed),
+    [relevantSubtasks]
+  );
+  const completedSubtasks = useMemo(
+    () => relevantSubtasks.filter(s => s.completed),
+    [relevantSubtasks]
+  );
 
   return (
     <div className="px-4 py-6">
@@ -142,12 +107,7 @@ export function TasksPage() {
                 >
                   <Checkbox
                     checked={subtask.completed}
-                    onCheckedChange={(checked) => 
-                      toggleSubtaskMutation.mutate({ 
-                        subtaskId: subtask.id, 
-                        completed: !!checked 
-                      })
-                    }
+                    onCheckedChange={() => toggleSubtask(subtask.id)}
                   />
                   <span className="flex-1">{subtask.title}</span>
                 </motion.div>
@@ -188,12 +148,7 @@ export function TasksPage() {
               >
                 <Checkbox
                   checked={subtask.completed}
-                  onCheckedChange={(checked) => 
-                    toggleSubtaskMutation.mutate({ 
-                      subtaskId: subtask.id, 
-                      completed: !!checked 
-                    })
-                  }
+                  onCheckedChange={() => toggleSubtask(subtask.id)}
                 />
                 <span className="flex-1 line-through text-muted-foreground">
                   {subtask.title}

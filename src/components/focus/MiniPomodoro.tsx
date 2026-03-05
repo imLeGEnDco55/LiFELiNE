@@ -72,15 +72,16 @@ export function MiniPomodoro() {
     return () => clearInterval(interval);
   }, [isRunning, timeLeft, handleSessionComplete]);
 
-  const toggleTimer = () => {
+  const toggleTimer = async () => {
     if (!isRunning) {
-      const session = createFocusSession({
+      // await for cloud mode compatibility
+      const session = await createFocusSession({
         deadline_id: null,
         duration_minutes: SESSION_DURATIONS[sessionType] / 60,
         session_type: sessionType,
         completed_at: null,
       });
-      setCurrentSessionId(session.id);
+      if (session?.id) setCurrentSessionId(session.id);
     }
     setIsRunning(prev => !prev);
   };
