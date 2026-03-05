@@ -53,6 +53,7 @@ export function PWAPrompt() {
               <button
                 onClick={() => promptInstall()}
                 className="p-1 hover:bg-muted rounded-full transition-colors"
+                aria-label="Cerrar notificación"
               >
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
@@ -93,6 +94,7 @@ export function PWAPrompt() {
               <button
                 onClick={dismissRefresh}
                 className="p-1 hover:bg-muted rounded-full transition-colors"
+                aria-label="Cerrar notificación"
               >
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
